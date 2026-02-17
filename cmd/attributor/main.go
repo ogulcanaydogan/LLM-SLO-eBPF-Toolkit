@@ -93,12 +93,17 @@ func loadSamples(inputPath string) ([]attribution.FaultSample, error) {
 	return attribution.LoadSamplesFromJSONL(inputPath)
 }
 
-func writeAttributionsJSONL(path string, predictions []schema.IncidentAttribution) error {
+func writeAttributionsJSONL(path string, predictions []schema.IncidentAttribution) (err error) {
 	writer, closeFn, err := openOutput(path)
 	if err != nil {
 		return err
 	}
-	defer closeFn()
+	defer func() {
+		closeErr := closeFn()
+		if err == nil && closeErr != nil {
+			err = closeErr
+		}
+	}()
 
 	buffered := bufio.NewWriter(writer)
 	defer buffered.Flush()
