@@ -1,62 +1,64 @@
 # LLM SLO eBPF Toolkit Killer Demo Stories
 
-## Demo 1: 5-Minute Install, First SLO Dashboard
+## Demo 1: 5-Minute Install to First LLM SLO Baseline
 ### Setup
-- Deploy DaemonSet collector in a sample Kubernetes cluster.
-- Run synthetic LLM request load against two namespaces.
+- Deploy collector DaemonSet in a sample Kubernetes cluster.
+- Run synthetic LLM traffic in two namespaces.
 
 ### What to show
-- Auto-discovered LLM service map.
-- Baseline RED metrics plus TTFT distribution.
-- Zero-code instrumentation for initial visibility.
+- Service map and baseline SLO dashboard appear without app code changes.
+- TTFT and error-rate time series are visible per namespace.
 
-### Win condition
-- Useful SLO dashboard appears without app code changes.
+### Measurable win condition
+- First usable dashboard in <= 5 minutes from deploy.
+- >= 95% of requests represented in baseline event stream.
 
-## Demo 2: TTFT Spike Autopsy
+## Demo 2: TTFT Spike Root-Cause in Minutes
 ### Setup
-- Inject DNS or egress latency for one workload path.
+- Inject controlled DNS/egress latency fault on one workload path.
 
 ### What to show
-- TTFT SLO burn detected in near real-time.
-- Attribution points to network degradation path.
-- Affected namespaces/services identified.
+- SLO burn alert fires with detection timestamp.
+- Attribution points to network fault domain and affected workloads.
+- Confidence score and evidence chain are visible.
 
-### Win condition
-- Operator can isolate likely root cause in minutes.
+### Measurable win condition
+- Detection delay improves by >= 30% versus app-only baseline.
+- Correct fault-domain attribution in >= 85% of single-fault runs.
 
-## Demo 3: Noisy Neighbor Fairness Incident
+## Demo 3: Noisy Neighbor Throughput Collapse Attribution
 ### Setup
-- Saturate CPU/cgroup for one tenant workload.
+- Apply CPU throttling to one tenant workload under concurrent traffic.
 
 ### What to show
-- Token throughput degradation for neighboring workloads.
-- Burn-rate alert with culprit workload correlation.
-- Resource-level evidence connected to request-level impact.
+- Token throughput degradation in neighboring workload is detected.
+- Attribution links culprit workload/resource pressure to impacted service.
 
-### Win condition
-- Platform team can act on concrete offender attribution.
+### Measurable win condition
+- Culprit workload identified in <= 3 minutes.
+- False-positive culprit attribution <= 10% across repeated runs.
 
-## Demo 4: Provider 429 Storm Separation
+## Demo 4: Provider 429 Storm vs Cluster Bottleneck Separation
 ### Setup
-- Simulate upstream provider throttling errors.
+- Inject upstream provider 429/5xx bursts while cluster remains healthy.
 
 ### What to show
-- Distinguish upstream saturation from in-cluster bottlenecks.
-- Error budget burn segmented by failure class.
-- Suggested mitigation path (backoff/routing/cap adjustments).
+- Incident classification distinguishes upstream provider failure from in-cluster bottlenecks.
+- Burn-rate impact is segmented by fault domain.
 
-### Win condition
-- Incident responders avoid misdiagnosing cluster internals.
+### Measurable win condition
+- Misclassification rate between provider and cluster domains <= 10%.
+- Runbook recommendation points to upstream mitigation path.
 
-## Demo 5: Canary Release SLO Gate
+## Demo 5: Canary SLO Gate with Attribution Evidence
 ### Setup
-- Compare stable vs canary workloads under same test profile.
+- Execute stable vs canary rollout under identical synthetic profile.
+- Introduce controlled canary regression in latency/error profile.
 
 ### What to show
-- Automated regression detection on TTFT/tail latency/error rate.
-- Confidence signal for rollback or promotion.
-- Artifacted report for change-review trail.
+- Gate blocks promotion based on SLO threshold breach.
+- Attribution report identifies dominant fault contributors.
 
-### Win condition
-- Release pipeline blocks reliability regressions with measurable criteria.
+### Measurable win condition
+- 100% regression cases blocked when thresholds are exceeded.
+- Promotion allowed for non-regressed canary runs in >= 95% of trials.

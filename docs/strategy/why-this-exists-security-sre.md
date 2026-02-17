@@ -1,17 +1,24 @@
 # Why LLM SLO eBPF Toolkit Exists (Security and SRE Narrative)
 
-SRE organizations depend on telemetry quality, but the hardest production systems often have the least consistent instrumentation. LLM workloads make this worse: each request can span ingress, application code, retrieval systems, policy layers, and external model providers. When SLOs degrade, teams often get contradictory signals from logs, traces, and vendor dashboards.
+LLM incidents routinely cross boundaries that teams monitor with separate tools: ingress, service runtime, retrieval backends, policy layers, and external model providers. When SLOs degrade, app-level telemetry alone often answers only part of the question. Teams can detect symptoms but still misidentify cause.
 
-LLM SLO eBPF Toolkit exists to provide ground truth from the kernel outward. It does not replace application instrumentation; it makes operations safer when instrumentation is missing, delayed, or incomplete.
+LLM SLO eBPF Toolkit exists to improve incident attribution quality by adding kernel-grounded evidence to the diagnosis path.
 
-By using eBPF-derived signals at protocol and runtime boundaries, the toolkit can provide baseline visibility quickly without per-service code changes. That matters for SRE response time and for security posture, because blind spots directly increase incident duration.
+The operating model is practical: collect low-level runtime/network signals without requiring immediate code instrumentation changes, correlate those signals with OpenTelemetry spans and Kubernetes identity, then produce attribution outputs tied to SLO burn behavior.
 
-The second problem is semantic mismatch. Traditional RED/USE metrics are necessary but insufficient for LLM workloads. Operators need decomposed indicators tied to user experience and model economics: time-to-first-token, provider tail latency, token throughput collapse, retrieval latency contribution, and policy/guardrail overhead.
+For SRE teams, this reduces triage uncertainty. Instead of debating whether a latency spike came from app code, network behavior, retrieval backend, or provider throttling, responders get an explicit fault-domain hypothesis with confidence and supporting events.
 
-Without these LLM-specific slices, teams guess root cause and apply expensive mitigations that may not improve reliability. The toolkit aims to close that loop by correlating kernel-level signals with OTel spans and Kubernetes workload identity.
+For platform teams, this improves standardization across heterogeneous services where instrumentation quality varies. A kernel-grounded baseline reduces dependency on per-team tracing maturity before meaningful SLO diagnostics are possible.
 
-This project is intentionally Kubernetes-first and open benchmark-oriented. Security and platform teams can inspect what is collected, how it is processed, and what overhead it introduces. The benchmark model uses repeatable fault injection so attribution claims are measurable, not anecdotal.
+For security-adjacent operations, it adds visibility into runtime egress and anomalous behavior that may materially affect reliability posture.
 
-There are real constraints: kernel compatibility, event volume management, and attribution uncertainty in multi-fault conditions. The toolkit treats these as first-class engineering concerns and makes uncertainty explicit in reports.
+The project intentionally treats uncertainty as first-class. Attribution quality is reported with confusion matrix, precision/recall, and abstain rates when confidence is low. That avoids over-claiming certainty in multi-fault conditions.
 
-Why this exists now: LLM systems are entering critical production paths faster than reliability instrumentation standards are maturing. Teams need an open, practical toolkit that can produce trustworthy SLO diagnostics and shorten mean time to resolution.
+This is not a claim that kernel data is universally sufficient. The value is in a combined model where kernel signals and app traces improve each other.
+
+## What this does not claim
+- It does not claim perfect attribution in concurrent multi-fault incidents.
+- It does not claim zero overhead across all environments.
+- It does not claim replacement of full APM/observability platforms.
+
+The core claim is narrower and testable: improve detection speed and attribution fidelity for LLM SLO incidents with transparent overhead tradeoffs.
