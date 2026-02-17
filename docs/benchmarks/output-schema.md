@@ -12,14 +12,26 @@
     "kernel_version": "6.x",
     "node_count": 3
   },
+  "stats": {
+    "sample_size": 0,
+    "runs_count": 0,
+    "confidence_level": 0.95
+  },
   "metrics": {
     "detection_delay_seconds_median": 0.0,
-    "attribution_accuracy": 0.0,
+    "detection_delay_ci95_low": 0.0,
+    "detection_delay_ci95_high": 0.0,
+    "attribution_macro_f1": 0.0,
+    "attribution_macro_f1_ci95_low": 0.0,
+    "attribution_macro_f1_ci95_high": 0.0,
     "false_positive_rate": 0.0,
     "false_negative_rate": 0.0,
+    "abstain_rate": 0.0,
     "burn_rate_prediction_error": 0.0,
     "collector_cpu_overhead_pct": 0.0,
-    "collector_memory_overhead_mb": 0.0
+    "collector_memory_overhead_mb": 0.0,
+    "events_per_second": 0.0,
+    "dropped_events_rate": 0.0
   }
 }
 ```
@@ -34,8 +46,23 @@ Columns:
 - `predicted_fault_domain`
 - `ground_truth_fault_domain`
 - `confidence`
+- `is_abstain`
 - `detection_delay_seconds`
 - `is_correct`
+
+## File: `confusion_matrix.csv`
+Columns:
+- `actual_fault_domain`
+- `predicted_fault_domain`
+- `count`
+
+## File: `class_metrics.csv`
+Columns:
+- `fault_domain`
+- `precision`
+- `recall`
+- `f1`
+- `support`
 
 ## File: `collector_overhead.csv`
 Columns:
@@ -54,7 +81,13 @@ Columns:
   "kernel_config_hash": "string",
   "fault_harness_version": "string",
   "dataset_seed": 0,
+  "benchmark_manifest_sha256": "string",
   "started_at": "RFC3339",
   "finished_at": "RFC3339"
 }
 ```
+
+## Validation Rules
+- Summary metrics must be recomputable from confusion/class metrics and raw incident predictions.
+- CI fields must use the confidence level declared under `stats.confidence_level`.
+- Any missing required artifact invalidates the benchmark run.

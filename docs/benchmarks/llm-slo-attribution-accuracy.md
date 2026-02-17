@@ -1,63 +1,78 @@
 # Benchmark Spec: LLM SLO Attribution Accuracy
 
 ## Purpose
-Evaluate how accurately and quickly the toolkit detects and localizes LLM SLO degradations compared with app-instrumentation-only baselines.
+Measure whether kernel-grounded telemetry improves LLM incident detection and fault attribution quality versus app-instrumentation-only baselines, while staying inside operational overhead budgets.
 
 ## Hypothesis
-Kernel-grounded telemetry plus OTel correlation improves incident detection latency and root-cause attribution accuracy with acceptable runtime overhead.
+`eBPF + OTel correlation` reduces detection delay and improves fault-domain attribution accuracy relative to app-only observability, with bounded CPU/memory/event overhead.
 
 ## Comparison Conditions
-1. Application instrumentation only (baseline).
-2. eBPF toolkit only.
-3. Combined mode (app instrumentation + eBPF toolkit).
+1. Baseline: application instrumentation only.
+2. Treatment A: eBPF toolkit only.
+3. Treatment B: combined mode (application instrumentation + eBPF toolkit).
 
-## Workloads
-- Chat-only service profile.
+## Workload Profiles
+- Chat-only LLM service profile.
 - RAG-enabled profile with retrieval dependency.
-- Mixed tenant profile under concurrent load.
+- Mixed-tenant concurrent profile.
 
 ## Fault Injection Matrix
 - DNS latency injection.
-- Packet loss and intermittent egress drops.
+- Packet loss and intermittent egress drop.
 - CPU throttling (cgroup quotas).
-- Memory pressure and reclaim pressure.
-- Provider 429/5xx error bursts.
+- Memory pressure / reclaim pressure.
+- Provider 429/5xx bursts.
 - Retrieval backend latency inflation.
 
 ## Primary Metrics
-- Detection delay (seconds) from fault start to alert.
-- Attribution accuracy (correctly identified primary fault domain).
+- Detection delay from fault start to alert.
+- Multiclass fault-domain attribution precision/recall/F1.
 - False positive and false negative incident rates.
-- SLO burn-rate prediction error.
-- Runtime overhead (collector CPU/memory/event throughput).
+- Abstain rate (low-confidence no-decision cases).
+- Burn-rate prediction error.
+- Collector CPU, memory, event throughput, and drop rate.
 
 ## Success Thresholds (Initial)
-- Median detection delay improved by >=30% vs baseline.
-- Attribution accuracy >=85% on single-fault scenarios.
-- False positive rate <=10% across test matrix.
-- Collector CPU overhead <=5% per node under target load.
-- Collector memory overhead <=250 MB per node in benchmark profile.
+- Median detection delay improvement >= 30% vs baseline.
+- Attribution macro-F1 >= 0.85 on single-fault scenarios.
+- False positive rate <= 10%.
+- Abstain rate <= 15% on single-fault scenarios.
+- Collector CPU overhead <= 5% per node under target load.
+- Collector memory overhead <= 250 MB per node in benchmark profile.
+
+## Statistical Reporting Requirements
+- Publish confusion matrix and per-class precision/recall/F1.
+- Publish 95% confidence intervals for detection delay and macro-F1.
+- Publish run count, sample size, and class balance per scenario.
+- Publish abstain/uncertainty distribution by fault type.
 
 ## Measurement Method
-- Time-synchronized run controller marks fault begin/end.
-- Ground truth labels are recorded in fault manifest.
-- Attribution output evaluated as multiclass classification.
-- Report includes confusion matrix, per-class precision/recall/F1.
+- Time-synchronized run controller marks fault start/end events.
+- Ground truth labels recorded in fault manifest.
+- Attribution evaluated as multiclass classification plus abstain class.
+- Report includes scenario-level and aggregate metrics.
 
 ## Reproducibility Protocol
 - Pin kernel, Kubernetes, and collector image versions.
 - Publish exact fault injection scripts and seed values.
-- Capture all raw event outputs and report generation code.
-- Re-run weekly on same cluster profile for trend stability.
+- Capture raw outputs and report-generation code.
+- Re-run on fixed weekly profile to track drift.
 
-## Deliverables Per Run
+## Required Artifacts Per Run
 - `artifacts/events/*.jsonl`
 - `artifacts/metrics/*.csv`
 - `artifacts/confusion-matrix.csv`
+- `artifacts/summary/attribution_summary.json`
 - `artifacts/report.md`
 - `artifacts/environment-manifest.yaml`
 
+## Failure Criteria (When to Reject a Run)
+- Missing ground truth manifest or seed values.
+- Missing confusion matrix or class-level metrics.
+- Unexplained mismatch between summary and raw recomputed metrics.
+- Collector overhead metrics missing for any node in test profile.
+
 ## Known Limitations
 - Multi-fault concurrency can reduce attribution certainty.
-- Kernel differences may change event availability and timing.
-- Some provider-side metrics may remain opaque without API-level instrumentation.
+- Kernel differences may alter event availability and timing behavior.
+- Provider-side opacity can limit causal resolution without API-level telemetry.

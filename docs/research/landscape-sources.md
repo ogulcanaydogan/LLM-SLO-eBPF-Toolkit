@@ -1,6 +1,9 @@
 # Landscape Sources (LLM SLO eBPF Toolkit)
 
-Primary references used for the competitor/adjacent map.
+Claim date: 2026-02-17  
+Last revalidated: 2026-02-17
+
+Primary references used for competitor and adjacent analysis.
 
 ## eBPF and Observability Platforms
 - OpenTelemetry eBPF Instrumentation first release: <https://opentelemetry.io/blog/2025/obi-announcing-first-release/>
@@ -12,10 +15,20 @@ Primary references used for the competitor/adjacent map.
 - Coroot performance impact: <https://docs.coroot.com/installation/performance-impact/>
 - Datadog Universal Service Monitoring: <https://www.datadoghq.com/product/universal-service-monitoring/>
 - Elastic Universal Profiling: <https://www.elastic.co/guide/en/observability/current/universal-profiling.html>
+- Inspektor Gadget docs: <https://inspektor-gadget.io/docs/latest/>
 - Odigos eBPF instrumentation note: <https://docs.odigos.io/instrumentations/golang/ebpf>
 
-## Adjacent LLM Application-Layer Tooling
-- Langfuse OSS repo: <https://github.com/langfuse/langfuse>
+## Matrix Coverage Mapping
+- `OpenTelemetry eBPF Instrumentation (OBI)` -> OBI release notes
+- `Pixie` -> Pixie data sources
+- `Cilium + Hubble` -> Cilium Hubble docs
+- `Tetragon` -> Tetragon docs
+- `Parca` -> Parca docs
+- `Coroot` -> Coroot architecture/performance docs
+- `Datadog Universal Service Monitoring` -> Datadog USM page
+- `Elastic Universal Profiling` -> Elastic Universal Profiling docs
+- `Inspektor Gadget` -> Inspektor Gadget docs
+- `Odigos` -> Odigos eBPF instrumentation docs
 
 ## Citation Guidance
-Feature sets in this area change quickly. Revalidate claims and release notes before each public benchmark publication.
+Feature sets in this area change quickly; revalidate claims and release notes before each publication.

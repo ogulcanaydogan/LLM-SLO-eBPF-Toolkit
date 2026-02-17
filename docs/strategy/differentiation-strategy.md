@@ -1,48 +1,71 @@
 # LLM SLO eBPF Toolkit Differentiation Strategy
 
+Claim date: 2026-02-17  
+Last revalidated: 2026-02-17
+
 ## Goal
-Define an honest, technical differentiation stance for a Kubernetes-first toolkit that improves LLM reliability/security operations through eBPF-grounded telemetry.
+Define a technically defensible differentiation stance for a Kubernetes-first toolkit that improves LLM reliability operations through kernel-grounded telemetry and attribution.
 
 ## Scope and Assumptions
-- Primary environment: Kubernetes multi-tenant clusters.
-- Integration posture: OpenTelemetry-compatible outputs.
-- Product boundary: reliability/security diagnostics, not full APM replacement.
+- Primary buyer: SRE, platform engineering, and security teams operating LLM services.
+- Integration posture: OpenTelemetry-compatible downstream exports.
+- Product boundary: incident attribution and SLO diagnostics, not full APM replacement.
 
-## Competitor and Adjacent Landscape (Top 10)
+## Top 10 Competitor and Adjacent Tools
 
 | Tool | What it does well | What it misses for this target |
 |---|---|---|
-| OpenTelemetry eBPF Instrumentation (OBI) | Zero-code protocol telemetry and strong OSS momentum | Generic signals; lacks opinionated LLM SLO semantics |
-| Pixie | Rich K8s troubleshooting from eBPF data | Limited first-class LLM SLI and burn-rate model |
-| Cilium + Hubble | Strong network identity, flow visibility, and policy context | Network-centric view, not full LLM SLO attribution pipeline |
-| Tetragon | Runtime security events and policy enforcement telemetry | Security-event centric, not SLO-centric LLM workload diagnostics |
-| Parca | Low-overhead continuous profiling | Profiling depth, but not request/token SLO decomposition |
-| Coroot | Integrated eBPF observability plus SLO functions | Broad platform scope; LLM-specific semantics are not primary |
-| Datadog USM | Production-grade service discovery and flow mapping | Closed product and less reproducible open benchmark posture |
-| Elastic Universal Profiling | Broad production profiling with eBPF | Profiling-centric, weaker direct LLM transactional SLO framing |
-| Odigos | Fast auto-instrumentation and OTel pipeline | Tracing-first; weaker kernel-level root-cause attribution by default |
-| Langfuse (adjacent) | LLM traces/evals and application-level analytics | Does not provide kernel/network causality for infrastructure SLO failures |
+| OpenTelemetry eBPF Instrumentation (OBI) | Zero-code signal collection and open standards alignment | Generic telemetry semantics; limited opinionated LLM SLO decomposition |
+| Pixie | Fast Kubernetes troubleshooting with rich eBPF-derived data | Not centered on LLM-specific SLI attribution model and fault labeling workflow |
+| Cilium + Hubble | Strong network identity and flow-level visibility | Network-centric lens does not fully explain user-facing LLM SLO burn paths |
+| Tetragon | Runtime security event visibility and policy telemetry | Security-event focus, not LLM latency/error budget attribution pipeline |
+| Parca | Low-overhead continuous profiling | Profiling depth without integrated LLM request/token SLO semantics |
+| Coroot | Integrated eBPF observability platform with SLO capabilities | Broad platform scope; LLM-specific attribution model is not primary objective |
+| Datadog Universal Service Monitoring | Production-grade service topology and traffic visibility | Closed-stack constraints and less transparent reproducible attribution methodology |
+| Elastic Universal Profiling | Mature production profiling with eBPF coverage | Profiling-first posture, weaker direct incident fault-domain attribution for LLM SLOs |
+| Inspektor Gadget | Practical eBPF tooling for Kubernetes runtime diagnostics | Toolkit-level diagnostics, not opinionated LLM SLO attribution and burn-rate model |
+| Odigos (adjacent) | Quick OTel auto-instrumentation and pipeline integration | App/tracing emphasis; weaker kernel-grounded causality in isolation |
 
-## Honest Gap Assessment (What We Must Execute Well)
-- eBPF portability across kernel versions can impact deployment reliability.
-- Attribution claims are easy to overstate; must publish false-positive/false-negative rates.
-- Kernel telemetry volume can be expensive without careful sampling and aggregation.
-- LLM-specific metrics (for example TTFT) require robust parsing for diverse protocols/providers.
+## Source Mapping
+All competitor claims above map to primary references in `/Users/ogulcanaydogan/Desktop/Projects/YaPAY/eBPF + LLM Inference SLO Toolkit/docs/research/landscape-sources.md`.
+
+## Honest Gap Assessment (Execution Risks)
+- Kernel compatibility risk: portability varies by kernel version and distro defaults.
+- Attribution confidence risk: multi-fault incidents can degrade precision.
+- Overhead risk: event volume can become expensive without robust filtering/aggregation.
+- Semantic extraction risk: TTFT/token metrics can vary across provider protocols.
 
 ## Unique Wedge (3 Pillars)
-1. Kernel-grounded LLM SLO telemetry with no-code coverage.
-2. LLM-native SLI model: TTFT, token throughput, retrieval contribution, provider error classes.
-3. Causal bridge: correlate eBPF events, OTel spans, and kube metadata for incident attribution.
+1. Kernel-grounded telemetry with no-code baseline coverage.
+   - Captures network/runtime indicators even when app instrumentation is partial.
+2. LLM-native SLI semantics.
+   - Models TTFT, token throughput collapse, provider error classes, and retrieval contribution.
+3. Causal attribution graph.
+   - Correlates eBPF events with OTel spans and Kubernetes workload identity for incident diagnosis.
 
-## Differentiation by Buyer Role
-- SRE: faster root-cause localization during latency/error budget burn.
-- Platform: standardized SLO telemetry across inconsistent app instrumentation.
-- Security: visibility into provider egress and runtime anomalies that impact reliability posture.
+## Positioning by Buyer
+- SRE: faster and more confident fault-domain localization during SLO burn.
+- Platform: standardized telemetry posture across heterogeneous LLM services.
+- Security: better visibility into runtime egress anomalies affecting reliability posture.
 
-## Positioning Statement
-LLM SLO eBPF Toolkit is a Kubernetes-first reliability observability layer that uses kernel-grounded data to explain why LLM SLOs are burning, even when application instrumentation is incomplete.
+## Publishable Benchmark Angle
+### Theme
+LLM SLO Attribution Accuracy Under Controlled Fault Injection.
 
-## Proof Requirements for Credibility
-- Public fault-injection benchmark runs with raw attribution outputs.
-- Versioned event schemas for interoperability.
-- Transparent overhead measurements (CPU, memory, event rates) under load.
+### Research Question
+Can kernel-grounded telemetry reduce detection delay and improve fault attribution accuracy versus app-instrumentation-only baselines while staying within strict overhead budgets?
+
+### Experimental Design
+- Baseline: app instrumentation only.
+- Treatment A: eBPF toolkit only.
+- Treatment B: combined app instrumentation + eBPF toolkit.
+
+### Publishability Requirements
+- Publish confusion matrix and per-fault precision/recall/F1.
+- Publish abstain/uncertainty rates when attribution confidence is below threshold.
+- Publish raw event/metric/provenance artifacts and reproducible fault manifests.
+
+## Non-Claims
+- No claim that kernel telemetry alone resolves all attribution ambiguity.
+- No claim that the toolkit replaces full observability/APM platforms.
+- No claim of uniform behavior across all kernels without compatibility testing.
