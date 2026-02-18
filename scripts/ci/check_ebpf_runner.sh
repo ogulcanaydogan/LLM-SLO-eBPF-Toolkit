@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ -z "${GITHUB_TOKEN:-}" ]]; then
-  echo "GITHUB_TOKEN is required" >&2
+api_token="${RUNNER_STATUS_TOKEN:-${GITHUB_TOKEN:-}}"
+
+if [[ -z "$api_token" ]]; then
+  echo "RUNNER_STATUS_TOKEN or GITHUB_TOKEN is required" >&2
   exit 1
 fi
 if [[ -z "${GITHUB_REPOSITORY:-}" ]]; then
@@ -13,7 +15,7 @@ fi
 api_url="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runners?per_page=100"
 tmp_body="$(mktemp)"
 http_code="$(curl -sS -o "$tmp_body" -w "%{http_code}" \
-  -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+  -H "Authorization: Bearer ${api_token}" \
   -H "Accept: application/vnd.github+json" \
   "$api_url" || true)"
 

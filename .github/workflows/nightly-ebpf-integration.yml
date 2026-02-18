@@ -19,6 +19,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: detect
         env:
+          RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: ./scripts/ci/check_ebpf_runner.sh
