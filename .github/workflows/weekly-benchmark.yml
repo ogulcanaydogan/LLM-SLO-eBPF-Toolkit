@@ -111,13 +111,16 @@ jobs:
             cleanup
             trap - EXIT
           else
-            echo "No previous tag found; using current run-1 as GA anchor baseline"
-            BASELINE_SOURCE_REF="${GITHUB_REF_NAME:-main}"
-            BASELINE_SOURCE_COMMIT="${GITHUB_SHA}"
+            echo "No previous tag found; generating GA anchor baseline from deterministic synthetic profile"
+            BASELINE_SOURCE_REF="ga-anchor-run1"
+            BASELINE_SOURCE_COMMIT=""
             for SCENARIO in "${SCENARIOS[@]}"; do
               OUT_DIR="artifacts/weekly-benchmark/baseline/${SCENARIO}"
               mkdir -p "$OUT_DIR"
-              cp "artifacts/weekly-benchmark/${SCENARIO}/run-1/raw_samples.jsonl" "$OUT_DIR/raw_samples.jsonl"
+              go run ./cmd/faultinject \
+                --scenario "$SCENARIO" \
+                --count 36 \
+                --out "$OUT_DIR/raw_samples.jsonl"
             done
           fi
           cat > artifacts/weekly-benchmark/baseline/manifest.json <<EOF_MANIFEST
@@ -238,13 +241,16 @@ jobs:
             cleanup
             trap - EXIT
           else
-            echo "No previous tag found; using current run-1 as GA anchor baseline"
-            BASELINE_SOURCE_REF="${GITHUB_REF_NAME:-main}"
-            BASELINE_SOURCE_COMMIT="${GITHUB_SHA}"
+            echo "No previous tag found; generating GA anchor baseline from deterministic synthetic profile"
+            BASELINE_SOURCE_REF="ga-anchor-run1"
+            BASELINE_SOURCE_COMMIT=""
             for SCENARIO in "${SCENARIOS[@]}"; do
               OUT_DIR="artifacts/weekly-benchmark/baseline/${SCENARIO}"
               mkdir -p "$OUT_DIR"
-              cp "artifacts/weekly-benchmark/${SCENARIO}/run-1/raw_samples.jsonl" "$OUT_DIR/raw_samples.jsonl"
+              go run ./cmd/faultinject \
+                --scenario "$SCENARIO" \
+                --count 36 \
+                --out "$OUT_DIR/raw_samples.jsonl"
             done
           fi
           cat > artifacts/weekly-benchmark/baseline/manifest.json <<EOF_MANIFEST
