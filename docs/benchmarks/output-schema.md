@@ -98,13 +98,15 @@ Required top-level fields:
 - `generated_at`
 - `candidate_root`
 - `baseline_root`
-- `overhead` (`pass`, `threshold_pct`, `max_observed_pct`)
-- `variance` (`pass`, per-scenario `variance_pct`)
-- `significance` (`pass`, per-scenario `mann_whitney_p_value`, `bootstrap_delta_ci95`)
+- `baseline` (`pass`, `manifest_required`, `manifest_path`, `source_ref`, `source_commit`, `same_source`)
+- `overhead` (`pass`, `threshold_pct`, `max_observed_pct`, `mean_observed_pct`, `node_p95_observed`, `max_node_p95_pct`)
+- `variance` (`pass`, per-scenario `variance_pct`, `tokens_variance_pct`, `error_rate_variance_pct`)
+- `significance` (`pass`, `min_samples_per_scenario`, `min_cliffs_delta_for_failure`, per-scenario `mann_whitney_p_value`, `bootstrap_delta_ci95`, `cliffs_delta`)
 - `pass`
 
 ## File: `m5_gate_summary.md`
 Required sections:
+- baseline provenance verdict
 - B5 overhead verdict
 - D3 rerun variance verdict
 - E3 significance verdict

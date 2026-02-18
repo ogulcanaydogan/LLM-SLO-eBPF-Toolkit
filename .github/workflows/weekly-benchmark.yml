@@ -5,8 +5,27 @@ on:
     - cron: "0 6 * * 1" # every Monday at 06:00 UTC
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
+  runner-preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      has_ebpf_runner: ${{ steps.detect.outputs.has_ebpf_runner }}
+      runner_count: ${{ steps.detect.outputs.runner_count }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: ./scripts/ci/check_ebpf_runner.sh
+
   full-benchmark-matrix:
+    needs: runner-preflight
+    if: needs.runner-preflight.outputs.has_ebpf_runner == 'true'
     runs-on: [self-hosted, linux, ebpf]
     timeout-minutes: 240
     steps:
@@ -101,13 +120,21 @@ jobs:
               cp "artifacts/weekly-benchmark/${SCENARIO}/run-1/raw_samples.jsonl" "$OUT_DIR/raw_samples.jsonl"
             done
           fi
-          cat > artifacts/weekly-benchmark/baseline/manifest.json <<EOF
+          cat > artifacts/weekly-benchmark/baseline/manifest.json <<EOF_MANIFEST
           {
             "source_ref": "${BASELINE_SOURCE_REF}",
             "source_commit": "${BASELINE_SOURCE_COMMIT}",
             "generated_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           }
-          EOF
+          EOF_MANIFEST
+
+      - name: Mark benchmark mode
+        run: |
+          cat > artifacts/weekly-benchmark/runner_mode.txt <<EOF_MODE
+          mode=full-self-hosted-ebpf
+          runner_count=${{ needs.runner-preflight.outputs.runner_count }}
+          timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          EOF_MODE
 
       - name: Run M5 GA gates (B5, D3, E3)
         env:
@@ -129,3 +156,127 @@ jobs:
       - name: kind teardown
         if: always()
         run: make kind-down
+
+  synthetic-fallback-matrix:
+    needs: runner-preflight
+    if: needs.runner-preflight.outputs.has_ebpf_runner != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: Build and validate
+        run: |
+          make build
+          make test
+          make correlation-gate
+          make schema-validate
+
+      - name: Run synthetic scenario matrix (fallback)
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/weekly-benchmark
+          SCENARIOS=(dns_latency cpu_throttle provider_throttle memory_pressure network_partition mixed)
+          for SCENARIO in "${SCENARIOS[@]}"; do
+            echo "=== Running fallback scenario: $SCENARIO ==="
+            for RUN in 1 2 3; do
+              RUN_DIR="artifacts/weekly-benchmark/${SCENARIO}/run-${RUN}"
+              mkdir -p "$RUN_DIR"
+              go run ./cmd/faultinject \
+                --scenario "$SCENARIO" \
+                --count 24 \
+                --out "$RUN_DIR/raw_samples.jsonl"
+              go run ./cmd/faultreplay \
+                --scenario "$SCENARIO" \
+                --count 24 \
+                --out "$RUN_DIR/replay.jsonl"
+
+              BENCH_SCENARIO="$SCENARIO"
+              if [[ "$SCENARIO" == "mixed" ]]; then
+                BENCH_SCENARIO="mixed_faults"
+              fi
+              go run ./cmd/benchgen \
+                --out "$RUN_DIR" \
+                --scenario "$BENCH_SCENARIO" \
+                --input "$RUN_DIR/replay.jsonl"
+            done
+          done
+
+      - name: Build baseline dataset from previous tag (fallback)
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/weekly-benchmark/baseline
+          SCENARIOS=(dns_latency cpu_throttle provider_throttle memory_pressure network_partition mixed)
+          BASELINE_SOURCE_REF=""
+          BASELINE_SOURCE_COMMIT=""
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          if [[ -n "$PREV_TAG" ]]; then
+            echo "Using previous tag baseline: $PREV_TAG"
+            BASELINE_SOURCE_REF="$PREV_TAG"
+            BASELINE_SOURCE_COMMIT="$(git rev-list -n 1 "$PREV_TAG")"
+            WORKTREE_DIR="$(mktemp -d)"
+            cleanup() {
+              git worktree remove --force "$WORKTREE_DIR" >/dev/null 2>&1 || true
+            }
+            trap cleanup EXIT
+            git worktree add --detach "$WORKTREE_DIR" "$PREV_TAG"
+            pushd "$WORKTREE_DIR"
+            for SCENARIO in "${SCENARIOS[@]}"; do
+              OUT_DIR="$GITHUB_WORKSPACE/artifacts/weekly-benchmark/baseline/${SCENARIO}"
+              mkdir -p "$OUT_DIR"
+              go run ./cmd/faultinject \
+                --scenario "$SCENARIO" \
+                --count 36 \
+                --out "$OUT_DIR/raw_samples.jsonl"
+            done
+            popd
+            cleanup
+            trap - EXIT
+          else
+            echo "No previous tag found; using current run-1 as GA anchor baseline"
+            BASELINE_SOURCE_REF="${GITHUB_REF_NAME:-main}"
+            BASELINE_SOURCE_COMMIT="${GITHUB_SHA}"
+            for SCENARIO in "${SCENARIOS[@]}"; do
+              OUT_DIR="artifacts/weekly-benchmark/baseline/${SCENARIO}"
+              mkdir -p "$OUT_DIR"
+              cp "artifacts/weekly-benchmark/${SCENARIO}/run-1/raw_samples.jsonl" "$OUT_DIR/raw_samples.jsonl"
+            done
+          fi
+          cat > artifacts/weekly-benchmark/baseline/manifest.json <<EOF_MANIFEST
+          {
+            "source_ref": "${BASELINE_SOURCE_REF}",
+            "source_commit": "${BASELINE_SOURCE_COMMIT}",
+            "generated_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF_MANIFEST
+
+      - name: Mark benchmark mode
+        run: |
+          cat > artifacts/weekly-benchmark/runner_mode.txt <<EOF_MODE
+          mode=fallback-synthetic-no-self-hosted-ebpf
+          runner_count=${{ needs.runner-preflight.outputs.runner_count }}
+          timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          note=Kernel-level eBPF and privileged kind checks were skipped.
+          EOF_MODE
+
+      - name: Run M5 GA gates (B5, D3, E3)
+        env:
+          M5_REQUIRE_BASELINE_MANIFEST: "true"
+          M5_CANDIDATE_REF: ${{ github.ref_name }}
+          M5_CANDIDATE_COMMIT: ${{ github.sha }}
+          M5_MIN_SAMPLES: "30"
+          M5_MIN_CLIFFS_DELTA: "0.147"
+        run: make m5-gate
+
+      - name: Upload weekly artifacts (fallback)
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-benchmark-fallback-${{ github.run_number }}
+          path: artifacts/weekly-benchmark/
+          retention-days: 90
+          if-no-files-found: warn

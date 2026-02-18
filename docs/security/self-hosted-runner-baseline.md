@@ -32,3 +32,4 @@ Scope: nightly and weekly Linux jobs that require privileged eBPF and kind integ
 - PR CI on GitHub-hosted runners must not require privileged eBPF execution.
 - Privileged jobs run only on trusted branches and scheduled workflows.
 - Weekly full benchmark jobs must publish provenance metadata for traceability.
+- Nightly and weekly workflows must execute runner preflight and switch to synthetic fallback mode when no online `self-hosted+linux+ebpf` runner is available.

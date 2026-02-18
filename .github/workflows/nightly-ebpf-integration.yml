@@ -5,8 +5,27 @@ on:
     - cron: "30 3 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
+  runner-preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      has_ebpf_runner: ${{ steps.detect.outputs.has_ebpf_runner }}
+      runner_count: ${{ steps.detect.outputs.runner_count }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: ./scripts/ci/check_ebpf_runner.sh
+
   privileged-kind-integration:
+    needs: runner-preflight
+    if: needs.runner-preflight.outputs.has_ebpf_runner == 'true'
     runs-on: [self-hosted, linux, ebpf]
     timeout-minutes: 90
     steps:
@@ -55,6 +74,13 @@ jobs:
         run: |
           COUNT=12 OUT_DIR=artifacts/benchmarks-nightly-matrix make chaos-matrix
           go run ./cmd/benchgen --out artifacts/benchmarks-nightly --scenario mixed_faults
+      - name: Mark runner mode
+        run: |
+          cat > artifacts/benchmarks-nightly/runner_mode.txt <<EOF_MODE
+          mode=full-self-hosted-ebpf
+          runner_count=${{ needs.runner-preflight.outputs.runner_count }}
+          timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          EOF_MODE
       - name: Upload nightly artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -68,3 +94,41 @@ jobs:
       - name: kind teardown
         if: always()
         run: make kind-down
+
+  synthetic-fallback-integration:
+    needs: runner-preflight
+    if: needs.runner-preflight.outputs.has_ebpf_runner != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+      - name: Build and unit tests
+        run: |
+          make build
+          make test
+          make correlation-gate
+          make schema-validate
+      - name: Synthetic incident smoke subset (fallback)
+        run: |
+          COUNT=12 OUT_DIR=artifacts/benchmarks-nightly-matrix make chaos-matrix
+          go run ./cmd/benchgen --out artifacts/benchmarks-nightly --scenario mixed_faults
+      - name: Mark runner mode
+        run: |
+          cat > artifacts/benchmarks-nightly/runner_mode.txt <<EOF_MODE
+          mode=fallback-synthetic-no-self-hosted-ebpf
+          runner_count=${{ needs.runner-preflight.outputs.runner_count }}
+          timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          note=Privileged eBPF and kind integration were skipped.
+          EOF_MODE
+      - name: Upload nightly artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-ebpf-artifacts
+          path: |
+            artifacts/benchmarks-nightly
+            artifacts/benchmarks-matrix
+            artifacts/benchmarks-nightly-matrix
+          if-no-files-found: warn

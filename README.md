@@ -333,7 +333,7 @@ Benchmark artifacts (confusion matrices, predictions, provenance) are published 
 - **Telemetry**: OpenTelemetry SDK, OTLP/HTTP exporters, Prometheus client
 - **Observability**: Grafana, Prometheus, Tempo, OpenTelemetry Collector
 - **Schemas**: JSON Schema for contract stability (v1 SLO events, v1 incident attributions, v1alpha1 probe events)
-- **CI/CD**: GitHub Actions with nightly eBPF integration on self-hosted Linux runners
+- **CI/CD**: GitHub Actions with runner preflight, full privileged paths on self-hosted `linux+ebpf`, and synthetic fallback paths when no such runner is online
 
 ## Quick Start
 
