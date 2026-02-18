@@ -39,3 +39,6 @@ data:
   capability_mode: "auto"
   disable_signals: ""
   disable_overhead_guard: "false"
+  enable_hello_tracer: "true"
+  hello_target_comm: "rag-service,llama-server"
+  enable_real_probe_metrics: "true"

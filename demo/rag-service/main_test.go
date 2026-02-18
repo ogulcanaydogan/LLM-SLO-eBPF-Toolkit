@@ -40,3 +40,33 @@ func TestSelectDocsCount(t *testing.T) {
 		t.Fatalf("expected 3 docs, got %d", len(picked))
 	}
 }
+
+func TestParseLLMBackend(t *testing.T) {
+	if _, err := parseLLMBackend("stub"); err != nil {
+		t.Fatalf("stub backend should parse: %v", err)
+	}
+	if _, err := parseLLMBackend("llama_cpp"); err != nil {
+		t.Fatalf("llama_cpp backend should parse: %v", err)
+	}
+	if _, err := parseLLMBackend("unknown"); err == nil {
+		t.Fatalf("expected error for unknown backend")
+	}
+}
+
+func TestResolveLlamaURL(t *testing.T) {
+	url, err := resolveLlamaURL("http://llama-cpp.default.svc.cluster.local:8080")
+	if err != nil {
+		t.Fatalf("resolve failed: %v", err)
+	}
+	if url != "http://llama-cpp.default.svc.cluster.local:8080/completion" {
+		t.Fatalf("unexpected resolved url %q", url)
+	}
+
+	url, err = resolveLlamaURL("http://llama-cpp.default.svc.cluster.local:8080/completion")
+	if err != nil {
+		t.Fatalf("resolve failed: %v", err)
+	}
+	if url != "http://llama-cpp.default.svc.cluster.local:8080/completion" {
+		t.Fatalf("unexpected resolved url %q", url)
+	}
+}

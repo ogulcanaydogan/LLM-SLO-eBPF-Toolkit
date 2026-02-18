@@ -50,8 +50,8 @@ jobs:
       - name: RAG demo service smoke
         run: |
           kubectl apply -k demo/rag-service/k8s
-          kubectl -n default wait --for=condition=ready pod -l app=rag-service --timeout=120s
-          kubectl -n default port-forward svc/rag-service 18080:8080 &
+          kubectl -n observability wait --for=condition=ready pod -l app=rag-service --timeout=120s
+          kubectl -n observability port-forward svc/rag-service 18080:8080 &
           PF_PID=$!
           sleep 5
           RESP=$(curl -sS --max-time 30 http://localhost:18080/chat \

@@ -39,5 +39,9 @@ spec:
           configMap:
             name: grafana-dashboard-provider
         - name: dashboards
-          configMap:
-            name: grafana-dashboard-slo
+          projected:
+            sources:
+              - configMap:
+                  name: grafana-dashboard-slo
+              - configMap:
+                  name: grafana-dashboard-evidence

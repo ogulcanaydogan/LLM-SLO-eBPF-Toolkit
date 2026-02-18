@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -93,6 +94,122 @@ type appServer struct {
 	correlator ebpfcorrelator.Correlator
 	docs       []corpusDoc
 	metrics    appMetrics
+	backend    llmBackend
+	backendID  string
+}
+
+type llmBackend interface {
+	Generate(ctx context.Context, prompt string, maxTokens int, seed int64) ([]string, error)
+}
+
+type stubBackend struct{}
+
+func (stubBackend) Generate(_ context.Context, prompt string, maxTokens int, seed int64) ([]string, error) {
+	return generateTokens(prompt, maxTokens, seed), nil
+}
+
+type llamaCPPBackend struct {
+	baseURL string
+	client  *http.Client
+}
+
+type llamaCPPRequest struct {
+	Prompt      string  `json:"prompt"`
+	NPredict    int     `json:"n_predict"`
+	Temperature float64 `json:"temperature"`
+	Seed        int64   `json:"seed"`
+	Stream      bool    `json:"stream"`
+}
+
+type llamaCPPResponse struct {
+	Content string `json:"content"`
+	Choices []struct {
+		Text    string `json:"text"`
+		Message struct {
+			Content string `json:"content"`
+		} `json:"message"`
+	} `json:"choices"`
+}
+
+func parseLLMBackend(raw string) (string, error) {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "", "stub":
+		return "stub", nil
+	case "llama_cpp":
+		return "llama_cpp", nil
+	default:
+		return "", fmt.Errorf("unsupported llm backend %q (expected stub|llama_cpp)", raw)
+	}
+}
+
+func resolveLlamaURL(raw string) (string, error) {
+	base := strings.TrimSpace(raw)
+	if base == "" {
+		return "", errors.New("llama-cpp url is required when llm-backend=llama_cpp")
+	}
+	base = strings.TrimRight(base, "/")
+	if strings.HasSuffix(base, "/completion") {
+		return base, nil
+	}
+	return base + "/completion", nil
+}
+
+func (b llamaCPPBackend) Generate(ctx context.Context, prompt string, maxTokens int, seed int64) ([]string, error) {
+	if b.client == nil {
+		b.client = &http.Client{Timeout: 45 * time.Second}
+	}
+
+	reqBody := llamaCPPRequest{
+		Prompt:      prompt,
+		NPredict:    maxTokens,
+		Temperature: 0,
+		Seed:        seed,
+		Stream:      false,
+	}
+	payload, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, b.baseURL, bytes.NewReader(payload))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := b.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("llama.cpp request failed with status %d", resp.StatusCode)
+	}
+
+	var out llamaCPPResponse
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return nil, err
+	}
+
+	content := strings.TrimSpace(out.Content)
+	if content == "" && len(out.Choices) > 0 {
+		content = strings.TrimSpace(out.Choices[0].Text)
+		if content == "" {
+			content = strings.TrimSpace(out.Choices[0].Message.Content)
+		}
+	}
+	if content == "" {
+		return nil, errors.New("llama.cpp returned empty content")
+	}
+
+	tokens := sanitizeTokens(strings.Fields(content))
+	if len(tokens) == 0 {
+		return nil, errors.New("llama.cpp output did not contain valid tokens")
+	}
+	if len(tokens) > maxTokens {
+		tokens = tokens[:maxTokens]
+	}
+	return tokens, nil
 }
 
 func main() {
@@ -101,6 +218,8 @@ func main() {
 	serviceName := flag.String("service-name", "rag-service", "service.name for telemetry")
 	otlpEndpoint := flag.String("otlp-endpoint", envOrDefault("OTEL_EXPORTER_OTLP_ENDPOINT", ""), "OTLP endpoint host:port")
 	fixtures := flag.String("fixtures", filepath.Join("demo", "rag-service", "fixtures", "corpus.json"), "fixtures corpus path")
+	backendFlag := flag.String("llm-backend", envOrDefault("LLM_BACKEND", "stub"), "LLM backend: stub|llama_cpp")
+	llamaURLFlag := flag.String("llama-cpp-url", envOrDefault("LLAMA_CPP_URL", "http://llama-cpp.default.svc.cluster.local:8080"), "llama.cpp base URL")
 	flag.Parse()
 
 	docs, err := loadCorpus(*fixtures)
@@ -120,11 +239,34 @@ func main() {
 
 	registry := prometheus.NewRegistry()
 	metrics := newMetrics(registry)
+
+	backendID, err := parseLLMBackend(*backendFlag)
+	if err != nil {
+		log.Fatalf("parse llm backend: %v", err)
+	}
+
+	var backend llmBackend
+	switch backendID {
+	case "llama_cpp":
+		llamaURL, resolveErr := resolveLlamaURL(*llamaURLFlag)
+		if resolveErr != nil {
+			log.Fatalf("llama backend config: %v", resolveErr)
+		}
+		backend = llamaCPPBackend{
+			baseURL: llamaURL,
+			client:  &http.Client{Timeout: 45 * time.Second},
+		}
+	default:
+		backend = stubBackend{}
+	}
+
 	server := appServer{
 		tracer:     otel.Tracer("llm-slo/rag-service"),
 		correlator: ebpfcorrelator.New(),
 		docs:       docs,
 		metrics:    metrics,
+		backend:    backend,
+		backendID:  backendID,
 	}
 
 	metricsMux := http.NewServeMux()
@@ -238,6 +380,8 @@ func (a appServer) handleChat(w http.ResponseWriter, r *http.Request) {
 			attribute.String("request.id", req.RequestID),
 			attribute.String("llm.profile", req.Profile),
 			attribute.Int64("llm.seed", req.Seed),
+			attribute.String("llm.backend", a.backendID),
+			attribute.String("llm.inference.target", backendTarget(a.backendID)),
 		),
 	)
 	defer span.End()
@@ -297,7 +441,15 @@ func (a appServer) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	genCtx, genSpan := a.tracer.Start(ctx, "chat.generation")
-	tokens := generateTokens(req.Prompt, req.MaxTokens, req.Seed)
+	tokens, err := a.backend.Generate(genCtx, req.Prompt, req.MaxTokens, req.Seed)
+	if err != nil {
+		genSpan.RecordError(err)
+		span.RecordError(err)
+		http.Error(w, "generation failed", http.StatusBadGateway)
+		a.metrics.requestTotal.WithLabelValues("error", req.Profile).Inc()
+		genSpan.End()
+		return
+	}
 	genSpan.SetAttributes(attribute.Int("llm.tokens.count", len(tokens)))
 
 	warmup := time.Duration(retrieval.Plan.WarmupMS) * time.Millisecond
@@ -701,6 +853,13 @@ func wait(d time.Duration) error {
 	}
 	time.Sleep(d)
 	return nil
+}
+
+func backendTarget(backendID string) string {
+	if backendID == "llama_cpp" {
+		return "llama.cpp"
+	}
+	return "stub"
 }
 
 func envOrDefault(key, fallback string) string {

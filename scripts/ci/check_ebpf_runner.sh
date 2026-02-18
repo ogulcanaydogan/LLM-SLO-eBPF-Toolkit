@@ -22,7 +22,7 @@ has_ebpf_runner="false"
 reason="fallback_default"
 if [[ "$http_code" == "200" ]]; then
   response="$(cat "$tmp_body")"
-  runner_count="$(jq '[.runners[] | select(.status == "online") | select(any(.labels[]?; .name == "self-hosted") and any(.labels[]?; .name == "linux") and any(.labels[]?; .name == "ebpf"))] | length' <<<"$response")"
+  runner_count="$(jq '[.runners[] | select(.status == "online") | select(any(.labels[]?; (.name | ascii_downcase) == "self-hosted") and any(.labels[]?; (.name | ascii_downcase) == "linux") and any(.labels[]?; (.name | ascii_downcase) == "ebpf"))] | length' <<<"$response")"
   if [[ "$runner_count" =~ ^[0-9]+$ ]] && [[ "$runner_count" -gt 0 ]]; then
     has_ebpf_runner="true"
   fi

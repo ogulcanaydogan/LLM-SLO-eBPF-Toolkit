@@ -27,5 +27,9 @@ spec:
               mountPath: /etc/prometheus
       volumes:
         - name: config
-          configMap:
-            name: prometheus-config
+          projected:
+            sources:
+              - configMap:
+                  name: prometheus-config
+              - configMap:
+                  name: prometheus-alerts

@@ -38,5 +38,6 @@ $BPF2GO -cc clang -cflags "$CFLAGS" RunqueueDelay ../c/runqueue_delay.bpf.c
 $BPF2GO -cc clang -cflags "$CFLAGS" ConnectLatency ../c/connect_latency.bpf.c
 $BPF2GO -cc clang -cflags "$CFLAGS" TLSHandshake ../c/tls_handshake.bpf.c
 $BPF2GO -cc clang -cflags "$CFLAGS" CPUSteal ../c/cpu_steal.bpf.c
+$BPF2GO -cc clang -cflags "$CFLAGS" HelloSysEnterWrite ../c/hello_sys_enter_write.bpf.c
 
-echo "generated CO-RE bindings for 7 programs in ebpf/bpf2go"
+echo "generated CO-RE bindings for 8 programs in ebpf/bpf2go"

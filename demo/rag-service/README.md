@@ -8,12 +8,21 @@ Deterministic streaming RAG stub that simulates a retrieval-augmented generation
 - **Prometheus SLO Metrics**: TTFT, tokens/sec, retrieval component latencies (vectordb, network, dns), request rate by status
 - **DNS Correlation Enrichment**: integrates with the eBPF correlator to enrich spans with `llm.ebpf.dns.latency_ms` when correlation confidence >= 0.70
 - **Deterministic Output**: seeded RNG produces identical results for a given (prompt, seed, profile) triple
+- **Backend Switch**: `stub` (default deterministic path) or `llama_cpp` (real inference target)
 - **Three Load Profiles**: `chat_short` (fast), `rag_medium` (default), `context_long` (heavy retrieval)
 
 ## Local Run
 
 ```bash
 go run ./demo/rag-service --bind :8080 --metrics-bind :2113
+```
+
+llama.cpp mode:
+
+```bash
+go run ./demo/rag-service \
+  --llm-backend llama_cpp \
+  --llama-cpp-url http://llama-cpp.default.svc.cluster.local:8080
 ```
 
 ### Streaming Request
@@ -126,3 +135,5 @@ sum(rate(llm_slo_correlation_total{enriched="true"}[5m])) / sum(rate(llm_slo_cor
 | `--service-name` | `rag-service` | OTel `service.name` resource attribute |
 | `--otlp-endpoint` | (empty) | OTLP gRPC endpoint; uses stdout exporter when empty |
 | `--fixtures` | `demo/rag-service/fixtures/corpus.json` | Path to corpus fixture file |
+| `--llm-backend` | `stub` | Inference backend (`stub` or `llama_cpp`) |
+| `--llama-cpp-url` | `http://llama-cpp.default.svc.cluster.local:8080` | Base URL for llama.cpp server (`/completion` is appended automatically) |

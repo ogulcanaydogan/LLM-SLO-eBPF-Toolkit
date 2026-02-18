@@ -1,0 +1,5 @@
+aws_region         = "us-east-1"
+vpc_id             = "vpc-xxxxxxxx"
+subnet_id          = "subnet-xxxxxxxx"
+github_repository  = "ogulcanaydogan/LLM-SLO-eBPF-Toolkit"
+runner_name_prefix = "llm-slo-ebpf"

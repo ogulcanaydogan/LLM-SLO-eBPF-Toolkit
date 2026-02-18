@@ -88,6 +88,21 @@ spec:
                 configMapKeyRef:
                   name: llm-slo-agent-config
                   key: disable_overhead_guard
+            - name: ENABLE_HELLO_TRACER
+              valueFrom:
+                configMapKeyRef:
+                  name: llm-slo-agent-config
+                  key: enable_hello_tracer
+            - name: HELLO_TARGET_COMM
+              valueFrom:
+                configMapKeyRef:
+                  name: llm-slo-agent-config
+                  key: hello_target_comm
+            - name: ENABLE_REAL_PROBE_METRICS
+              valueFrom:
+                configMapKeyRef:
+                  name: llm-slo-agent-config
+                  key: enable_real_probe_metrics
           command:
             - /agent
           args:
@@ -108,6 +123,9 @@ spec:
             - "--capability-mode=$(CAPABILITY_MODE)"
             - "--disable-signals=$(DISABLE_SIGNALS)"
             - "--disable-overhead-guard=$(DISABLE_OVERHEAD_GUARD)"
+            - "--enable-hello-tracer=$(ENABLE_HELLO_TRACER)"
+            - "--hello-target-comm=$(HELLO_TARGET_COMM)"
+            - "--enable-real-probe-metrics=$(ENABLE_REAL_PROBE_METRICS)"
             - "--config=/etc/llm-slo-agent/toolkit.yaml"
             - "--metrics-bind=:2112"
           resources:

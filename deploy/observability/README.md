@@ -33,5 +33,7 @@ Grafana default credentials:
 - OTel Collector exposes OTLP/HTTP on `otel-collector.observability.svc:4318`.
 - Prometheus scrapes agent heartbeat metrics and collector metrics.
 - Dashboards are provisioned from configmaps.
+- Evidence dashboard slug: `Evidence E2E`.
+- Prometheus alert rules are included via `prometheus-alerts.yaml`.
 - To send agent events to OTLP, switch output mode:
   - `kubectl -n llm-slo-system set env daemonset/llm-slo-agent OUTPUT_MODE=otlp OTLP_ENDPOINT=http://otel-collector.observability.svc.cluster.local:4318/v1/logs`

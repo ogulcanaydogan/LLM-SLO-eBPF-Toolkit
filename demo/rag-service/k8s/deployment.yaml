@@ -16,12 +16,20 @@ spec:
         - name: rag-service
           image: ghcr.io/ogulcanaydogan/llm-slo-ebpf-toolkit-rag-service:latest
           imagePullPolicy: IfNotPresent
+          env:
+            - name: LLM_BACKEND
+              value: "stub"
+            - name: LLAMA_CPP_URL
+              value: "http://llama-cpp.default.svc.cluster.local:8080"
           command: ["/rag-service"]
           args:
             - "--bind=:8080"
             - "--metrics-bind=:2113"
             - "--service-name=rag-service"
             - "--otlp-endpoint=otel-collector.observability.svc.cluster.local:4317"
+            - "--fixtures=/demo/rag-service/fixtures/corpus.json"
+            - "--llm-backend=$(LLM_BACKEND)"
+            - "--llama-cpp-url=$(LLAMA_CPP_URL)"
           ports:
             - name: http
               containerPort: 8080

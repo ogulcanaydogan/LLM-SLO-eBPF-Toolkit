@@ -15,7 +15,11 @@ kubectl delete -k deploy/k8s
 Notes:
 - The DaemonSet uses a privileged security context for eBPF access.
 - Update the container image in `deploy/k8s/daemonset.yaml` for your release.
-- Default agent args run synthetic stream mode (`--count=0`) and expose heartbeat/health endpoints on port `2112`.
+- Default agent args run synthetic stream mode (`--count=0`) in `probe` mode and expose `/metrics` on port `2112`.
+- Evidence metrics include:
+  - `llm_ebpf_hello_syscalls_total`
+  - `llm_ebpf_dns_latency_ms_bucket`
+  - `llm_ebpf_probe_events_total`
 - Manifests are intended as a baseline and should be adapted to your cluster hardening policy.
 
 Check emitted SLO events:
