@@ -7,6 +7,18 @@
 - Added RAG demo service smoke test to nightly CI workflow (validates TTFT, tokens/sec, and trace_id in response).
 - Expanded demo/rag-service README with streaming/non-streaming examples, expected output, PromQL queries, load profiles, and full flag reference.
 - Added correlation quality evaluator (`cmd/correlationeval`, `pkg/correlation/evaluator.go`) with labeled dataset and CI quality gate.
+- Added 6 CO-RE eBPF probes: DNS latency, TCP retransmit, runqueue delay, connect latency, TLS handshake, CPU steal — with shared event header and ring buffer emission.
+- Added Go ring buffer consumer (`pkg/collector/ringbuf.go`) to decode kernel events into `schema.ProbeEventV1`.
+- Added probe manager (`pkg/collector/probe_manager.go`) with lifecycle control, safety integration, and per-signal disable.
+- Added BCC fallback stub (`pkg/collector/bcc_fallback.go`) for degraded-mode DNS+TCP collection.
+- Updated `ebpf/bpf2go/gen.sh` to generate CO-RE bindings for all 7 programs (minimal + 6 signal probes).
+- Added retry storm detector (`pkg/correlation/retry_storm.go`) with sliding-window per-pod burst detection.
+- Added retrieval latency decomposition (`DecomposeRetrieval`) to OTel correlator for kernel-attributed retrieval breakdown.
+- Added `llm.ebpf.retrieval.kernel_attributed_ms` and `llm.ebpf.tcp.retry_storm` semconv attributes.
+- Expanded correlation labeled dataset from 20 to 55 pairs covering all 4 tiers, edge cases, and cross-service scenarios.
+- Added 6th fault scenario `network_partition` with high connect latency, TCP retransmit storms, and DNS timeouts.
+- Added Prometheus alerting rules (`deploy/observability/prometheus-alerts.yaml`) with 5 alerts: TTFT budget burn, error rate, correlation degraded, agent heartbeat stale, overhead high.
+- Added 6 declarative incident scenario YAML definitions under `test/incident-lab/scenarios/`.
 
 ## v0.1.0-alpha.5 - 2026-02-18
 - Added OTLP/HTTP SLO event exporter (`pkg/otel/slo_event_exporter.go`) and wired `cmd/collector` + `cmd/agent` to support `--output otlp`.

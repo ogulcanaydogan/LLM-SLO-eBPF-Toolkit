@@ -13,4 +13,7 @@ const (
 	AttrRetrievalVectorDB  = "llm.slo.retrieval.vectordb_ms"
 	AttrRetrievalNetworkMS = "llm.slo.retrieval.network_ms"
 	AttrRetrievalDNSMS     = "llm.slo.retrieval.dns_ms"
+
+	AttrRetrievalKernelMS = "llm.ebpf.retrieval.kernel_attributed_ms"
+	AttrRetryStorm        = "llm.ebpf.tcp.retry_storm"
 )
