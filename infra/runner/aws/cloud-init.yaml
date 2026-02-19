@@ -9,6 +9,8 @@ write_files:
       RUNNER_VERSION=${runner_version}
       RUNNER_HOME=/opt/actions-runner
       RUNNER_NAME_PREFIX=${runner_name_prefix}
+      AWS_REGION=${aws_region}
+      AWS_DEFAULT_REGION=${aws_region}
       RUNNER_DEFAULT_LABELS=${runner_default_labels_csv}
       RUNNER_EXTRA_LABELS=${runner_extra_labels_csv}
       APPEND_KERNEL_VERSION_LABEL=${append_kernel_version_label}
@@ -39,7 +41,7 @@ write_files:
       set -euo pipefail
       source /etc/llm-slo-runner.env
       cd "$RUNNER_HOME"
-      RUNNER_PAT="${RUNNER_PAT:-}"
+      RUNNER_PAT="$${RUNNER_PAT:-}"
 
       json_token() {
         python3 -c 'import json,sys; print((json.load(sys.stdin).get("token") or "").strip())'
@@ -51,7 +53,7 @@ write_files:
           return 0
         fi
         if command -v aws >/dev/null 2>&1; then
-          aws ssm get-parameter --name "$RUNNER_PAT_PARAMETER_NAME" --with-decryption --query 'Parameter.Value' --output text 2>/dev/null || true
+          aws --region "$AWS_REGION" ssm get-parameter --name "$RUNNER_PAT_PARAMETER_NAME" --with-decryption --query 'Parameter.Value' --output text 2>/dev/null || true
           return 0
         fi
         return 0
@@ -63,21 +65,21 @@ write_files:
         major="$(awk -F. '{print $1}' <<<"$release")"
         minor="$(awk -F. '{print $2}' <<<"$release")"
         if [[ "$major" =~ ^[0-9]+$ && "$minor" =~ ^[0-9]+$ ]]; then
-          echo "kernel-${major}-${minor}"
+          echo "kernel-$${major}-$${minor}"
         fi
       }
 
       build_labels() {
         local labels extra auto
-        labels="${RUNNER_DEFAULT_LABELS:-self-hosted,linux,ebpf}"
-        extra="${RUNNER_EXTRA_LABELS:-}"
+        labels="$${RUNNER_DEFAULT_LABELS:-self-hosted,linux,ebpf}"
+        extra="$${RUNNER_EXTRA_LABELS:-}"
         if [[ -n "$extra" ]]; then
-          labels="${labels},${extra}"
+          labels="$${labels},$${extra}"
         fi
-        if [[ "${APPEND_KERNEL_VERSION_LABEL:-true}" == "true" ]]; then
+        if [[ "$${APPEND_KERNEL_VERSION_LABEL:-true}" == "true" ]]; then
           auto="$(kernel_label)"
           if [[ -n "$auto" ]]; then
-            labels="${labels},${auto}"
+            labels="$${labels},$${auto}"
           fi
         fi
         tr '[:upper:]' '[:lower:]' <<<"$labels" \

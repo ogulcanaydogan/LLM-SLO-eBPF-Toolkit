@@ -19,6 +19,7 @@ RUNNER_NAME_PREFIX="${RUNNER_NAME_PREFIX:-llm-slo-ebpf}"
 RUNNER_DEFAULT_LABELS="${RUNNER_DEFAULT_LABELS:-self-hosted,linux,ebpf}"
 RUNNER_EXTRA_LABELS="${RUNNER_EXTRA_LABELS:-}"
 APPEND_KERNEL_VERSION_LABEL="${APPEND_KERNEL_VERSION_LABEL:-true}"
+AWS_REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-}}"
 RUNNER_PAT="${RUNNER_PAT:-}"
 
 if [[ -z "$GITHUB_REPOSITORY" ]]; then
@@ -38,7 +39,11 @@ fetch_pat() {
     return 0
   fi
   if command -v aws >/dev/null 2>&1; then
-    aws ssm get-parameter --name "$RUNNER_PAT_PARAMETER_NAME" --with-decryption --query 'Parameter.Value' --output text 2>/dev/null || true
+    if [[ -n "$AWS_REGION" ]]; then
+      aws --region "$AWS_REGION" ssm get-parameter --name "$RUNNER_PAT_PARAMETER_NAME" --with-decryption --query 'Parameter.Value' --output text 2>/dev/null || true
+    else
+      aws ssm get-parameter --name "$RUNNER_PAT_PARAMETER_NAME" --with-decryption --query 'Parameter.Value' --output text 2>/dev/null || true
+    fi
     return 0
   fi
   return 0

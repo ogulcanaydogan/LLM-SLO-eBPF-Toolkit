@@ -20,6 +20,7 @@ GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-}"
 RUNNER_PAT_PARAMETER_NAME="${RUNNER_PAT_PARAMETER_NAME:-/llm-slo/github/runner_pat}"
 RUNNER_VERSION="${RUNNER_VERSION:-2.323.0}"
 RUNNER_HOME="${RUNNER_HOME:-/opt/actions-runner}"
+AWS_REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-}}"
 RUNNER_PAT="${RUNNER_PAT:-}"
 
 if [[ -z "$GITHUB_REPOSITORY" ]]; then
@@ -51,7 +52,11 @@ json_token() {
 
 PAT="$RUNNER_PAT"
 if [[ -z "$PAT" ]]; then
-  PAT="$(aws ssm get-parameter --name "$RUNNER_PAT_PARAMETER_NAME" --with-decryption --query 'Parameter.Value' --output text)"
+  if [[ -n "$AWS_REGION" ]]; then
+    PAT="$(aws --region "$AWS_REGION" ssm get-parameter --name "$RUNNER_PAT_PARAMETER_NAME" --with-decryption --query 'Parameter.Value' --output text)"
+  else
+    PAT="$(aws ssm get-parameter --name "$RUNNER_PAT_PARAMETER_NAME" --with-decryption --query 'Parameter.Value' --output text)"
+  fi
 fi
 if [[ -z "$PAT" || "$PAT" == "None" ]]; then
   echo "failed to fetch PAT (set RUNNER_PAT or SSM parameter: $RUNNER_PAT_PARAMETER_NAME)"

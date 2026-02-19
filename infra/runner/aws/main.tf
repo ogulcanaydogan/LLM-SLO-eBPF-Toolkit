@@ -55,14 +55,14 @@ locals {
 
 check "runner_subnet_configuration" {
   assert {
-    condition     = length(var.runner_profiles) > 0 || (var.subnet_id != null && trim(var.subnet_id) != "")
+    condition     = length(var.runner_profiles) > 0 || (var.subnet_id != null && trimspace(var.subnet_id) != "")
     error_message = "subnet_id must be set when runner_profiles is empty."
   }
 
   assert {
     condition = alltrue([
       for _, profile in var.runner_profiles :
-      ((var.subnet_id != null && trim(var.subnet_id) != "") || (try(profile.subnet_id, null) != null && trim(try(profile.subnet_id, "")) != ""))
+      ((var.subnet_id != null && trimspace(var.subnet_id) != "") || (try(profile.subnet_id, null) != null && trimspace(try(profile.subnet_id, "")) != ""))
     ])
     error_message = "Each runner profile must define subnet_id or use top-level subnet_id."
   }
@@ -160,6 +160,7 @@ resource "aws_instance" "runner" {
   user_data = templatefile("${path.module}/cloud-init.yaml", {
     github_repository         = var.github_repository
     runner_pat_parameter_name = var.runner_pat_parameter_name
+    aws_region                = var.aws_region
     runner_name_prefix = coalesce(
       try(each.value.runner_name_prefix, null),
       length(var.runner_profiles) > 0 ? "${var.runner_name_prefix}-${each.key}" : var.runner_name_prefix
