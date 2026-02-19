@@ -53,7 +53,7 @@ jobs:
           kubectl -n llm-slo-system set image daemonset/llm-slo-agent agent=llm-slo-agent:ci
           kubectl -n llm-slo-system rollout status daemonset/llm-slo-agent --timeout=180s
       - name: OTLP observability smoke
-        run: make kind-observability-smoke
+        run: AGENT_IMAGE=llm-slo-agent:ci make kind-observability-smoke
       - name: RAG demo service smoke
         run: |
           kubectl apply -k demo/rag-service/k8s
