@@ -106,7 +106,27 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+ensure_clean_state() {
+  if [[ -f .runner || -f .credentials || -f .credentials_rsaparams ]]; then
+    echo "stale runner state detected; forcing cleanup"
+    local pat remove_token
+    pat="$(fetch_pat)"
+    if [[ -n "$pat" && "$pat" != "None" ]]; then
+      remove_token="$(curl -fsSL -X POST \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer ${pat}" \
+        "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runners/remove-token" | json_token 2>/dev/null || true)"
+      if [[ -n "$remove_token" && "$remove_token" != "null" ]]; then
+        ./config.sh remove --token "$remove_token" >/dev/null 2>&1 || true
+      fi
+    fi
+    rm -f .runner .credentials .credentials_rsaparams
+  fi
+}
+
 while true; do
+  ensure_clean_state
+
   PAT="$(fetch_pat)"
   if [[ -z "$PAT" || "$PAT" == "None" ]]; then
     echo "unable to fetch PAT (set RUNNER_PAT or configure aws ssm access)"
