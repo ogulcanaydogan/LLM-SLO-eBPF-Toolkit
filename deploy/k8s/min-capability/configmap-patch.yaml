@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llm-slo-agent-config
+  namespace: llm-slo-system
+data:
+  toolkit.yaml: |
+    apiVersion: toolkit.llm-slo.dev/v1alpha1
+    kind: ToolkitConfig
+    signal_set:
+      - dns_latency_ms
+      - tcp_retransmits_total
+    sampling:
+      events_per_second_limit: 5000
+      burst_limit: 10000
+    correlation:
+      window_ms: 2000
+    otlp:
+      endpoint: http://otel-collector.observability.svc.cluster.local:4318/v1/logs
+    safety:
+      max_overhead_pct: 3
+  capability_mode: "auto"
+  disable_signals: "runqueue_delay_ms,connect_latency_ms,tls_handshake_ms,cpu_steal_pct"
+  enable_hello_tracer: "false"
+  enable_real_probe_metrics: "true"

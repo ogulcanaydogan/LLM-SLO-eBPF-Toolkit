@@ -51,3 +51,7 @@ gh api repos/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runners \
 Expected outcome:
 - at least one runner reports `status: "online"`
 - labels include `self-hosted`, `linux`, and `ebpf`
+
+Kernel matrix extension:
+- Add profile labels (for example `kernel-5-15`, `kernel-6-8`) to dedicated runners.
+- Run `.github/workflows/kernel-compatibility-matrix.yml` to publish compatibility results to `docs/compatibility.md` artifacts.

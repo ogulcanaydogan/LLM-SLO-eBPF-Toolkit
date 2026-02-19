@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added release workflow container publishing for `agent` and `rag-service` images to GHCR with keyless cosign signing and provenance attestations.
+- Added `e2e-evidence-report.yml` workflow to generate deterministic end-to-end evidence bundles and markdown reports.
+- Added min-capability non-privileged deployment overlay under `deploy/k8s/min-capability` and security documentation.
+- Expanded chaos matrix runner with optional real injectors (`REAL_INJECTORS=true`) for DNS delay, retransmit/loss, and CPU stress while preserving synthetic fallback.
+- Added kernel compatibility matrix workflow plus report generation scripts and published compatibility document scaffold (`docs/compatibility.md`).
+
 ## v0.2.0-rc.2 - 2026-02-19
 - Stabilized nightly privileged integration by replacing a terminating-pod-sensitive RAG readiness wait with deployment availability checks and safer port-forward cleanup.
 - Hardened OTLP smoke and agent deployment path in CI by enforcing local image override usage and metrics-based ingestion gating.

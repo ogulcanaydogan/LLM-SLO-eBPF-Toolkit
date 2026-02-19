@@ -312,6 +312,8 @@ Workflow map:
 - `pr-privileged-ebpf-smoke.yml`: merge-oriented privileged smoke path on `self-hosted,linux,ebpf` (kind deploy, OTLP smoke, RAG smoke, eBPF smoke).
 - `nightly-ebpf-integration.yml`: scheduled privileged integration with synthetic fallback when no runner is online.
 - `weekly-benchmark.yml`: full matrix benchmark and M5 GA gates (B5/D3/E3) on self-hosted runner with fallback path.
+- `e2e-evidence-report.yml`: deterministic evidence bundle generation (DaemonSet -> Prometheus -> alert query outputs -> markdown report).
+- `kernel-compatibility-matrix.yml`: runner-label kernel compatibility probes for `kernel-5-15` and `kernel-6-8` profiles.
 - `release.yml`: tag-driven binary packaging, checksums, SBOM, and provenance publication.
 
 ## Key Results
@@ -340,7 +342,7 @@ Benchmark artifacts (confusion matrices, predictions, provenance) are published 
 - **Telemetry**: OpenTelemetry SDK, OTLP/HTTP exporters, Prometheus client
 - **Observability**: Grafana, Prometheus, Tempo, OpenTelemetry Collector
 - **Schemas**: JSON Schema for contract stability (v1 SLO events, v1 incident attributions, v1alpha1 probe events)
-- **CI/CD**: GitHub Actions with PR privileged smoke on self-hosted `linux+ebpf`, runner preflight routing, and synthetic fallback paths for scheduled runs when no such runner is online
+- **CI/CD**: GitHub Actions with PR privileged smoke on self-hosted `linux+ebpf`, scheduled fallback routing, kernel compatibility matrix probes, and evidence-report automation
 
 ## Quick Start
 
@@ -371,6 +373,9 @@ make kind-up
 
 # Deploy agent DaemonSet
 kubectl apply -k deploy/k8s
+
+# Deploy reduced-risk profile (non-privileged, reduced signal set)
+kubectl apply -k deploy/k8s/min-capability
 
 # Deploy observability stack (Prometheus + Tempo + Grafana + OTel Collector)
 kubectl apply -k deploy/observability
@@ -403,8 +408,11 @@ go run ./cmd/faultreplay --scenario mixed --count 30 --out artifacts/fault-repla
 # Build benchmark report from replay samples
 go run ./cmd/benchgen --out artifacts/benchmarks-replay --scenario mixed_faults --input artifacts/fault-replay/fault_samples.jsonl
 
-# Run chaos fault matrix
+# Run chaos fault matrix (synthetic default)
 make chaos-matrix
+
+# Run chaos fault matrix with real injectors for DNS/retransmit/CPU
+REAL_INJECTORS=true make chaos-matrix
 ```
 
 ## Project Structure
@@ -598,6 +606,8 @@ gantt
 | [Benchmark Reports](docs/benchmarks/reports/) | Latest attribution accuracy, overhead, and regression results |
 | [Configuration Schema](config/toolkit.schema.json) | Toolkit configuration reference |
 | [Runner Security Baseline](docs/security/self-hosted-runner-baseline.md) | CI runner isolation and credential management |
+| [Kernel Compatibility Matrix](docs/compatibility.md) | Kernel-profile compatibility checks for labeled self-hosted runners |
+| [Agent Min-Capability Mode](docs/security/agent-min-capability-mode.md) | Non-privileged deployment profile and tradeoffs |
 
 ## Licence
 

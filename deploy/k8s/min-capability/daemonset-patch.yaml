@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: llm-slo-agent
+  namespace: llm-slo-system
+spec:
+  template:
+    spec:
+      hostPID: false
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
+      containers:
+        - name: agent
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["BPF", "SYS_ADMIN", "SYS_RESOURCE"]

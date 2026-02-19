@@ -7,10 +7,14 @@ on:
 permissions:
   contents: write
   id-token: write
+  packages: write
+  attestations: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      REGISTRY: ghcr.io
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,6 +23,23 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.23"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Resolve image coordinates
+        id: image
+        run: |
+          owner_lc="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "owner_lc=${owner_lc}" >> "$GITHUB_OUTPUT"
+          echo "agent_ref=${REGISTRY}/${owner_lc}/llm-slo-ebpf-toolkit-agent" >> "$GITHUB_OUTPUT"
+          echo "rag_ref=${REGISTRY}/${owner_lc}/llm-slo-ebpf-toolkit-rag-service" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ github.token }}
 
       - name: Build and validate
         run: |
@@ -38,6 +59,32 @@ jobs:
               go build -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
               -o "dist/${CMD}-darwin-arm64" "./cmd/${CMD}"
           done
+
+      - name: Build and push agent image
+        id: build_agent_image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: cmd/agent/Dockerfile
+          push: true
+          provenance: false
+          sbom: false
+          tags: |
+            ${{ steps.image.outputs.agent_ref }}:${{ github.ref_name }}
+            ${{ steps.image.outputs.agent_ref }}:latest
+
+      - name: Build and push rag-service image
+        id: build_rag_image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: demo/rag-service/Dockerfile
+          push: true
+          provenance: false
+          sbom: false
+          tags: |
+            ${{ steps.image.outputs.rag_ref }}:${{ github.ref_name }}
+            ${{ steps.image.outputs.rag_ref }}:latest
 
       - name: Generate checksums
         run: |
@@ -67,6 +114,50 @@ jobs:
           }
           PROV
 
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: "v2.4.1"
+
+      - name: Sign published images
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          cosign sign --yes "${{ steps.image.outputs.agent_ref }}@${{ steps.build_agent_image.outputs.digest }}"
+          cosign sign --yes "${{ steps.image.outputs.rag_ref }}@${{ steps.build_rag_image.outputs.digest }}"
+
+      - name: Attest agent image provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ steps.image.outputs.agent_ref }}
+          subject-digest: ${{ steps.build_agent_image.outputs.digest }}
+          push-to-registry: true
+
+      - name: Attest rag-service image provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ steps.image.outputs.rag_ref }}
+          subject-digest: ${{ steps.build_rag_image.outputs.digest }}
+          push-to-registry: true
+
+      - name: Write image artifact manifest
+        run: |
+          cat > dist/container-images.json <<EOF
+          {
+            "version": "${{ github.ref_name }}",
+            "agent": {
+              "repository": "${{ steps.image.outputs.agent_ref }}",
+              "tag": "${{ github.ref_name }}",
+              "digest": "${{ steps.build_agent_image.outputs.digest }}"
+            },
+            "rag_service": {
+              "repository": "${{ steps.image.outputs.rag_ref }}",
+              "tag": "${{ github.ref_name }}",
+              "digest": "${{ steps.build_rag_image.outputs.digest }}"
+            }
+          }
+          EOF
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -77,3 +168,4 @@ jobs:
             dist/checksums-sha256.txt
             dist/sbom-spdx.json
             dist/provenance.json
+            dist/container-images.json

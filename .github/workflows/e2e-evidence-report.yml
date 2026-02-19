@@ -1,0 +1,93 @@
+name: e2e-evidence-report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "45 4 * * 1"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  runner-preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      has_ebpf_runner: ${{ steps.detect.outputs.has_ebpf_runner }}
+      runner_count: ${{ steps.detect.outputs.runner_count }}
+      reason: ${{ steps.detect.outputs.reason }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        env:
+          RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: ./scripts/ci/check_ebpf_runner.sh
+
+  evidence-e2e:
+    needs: runner-preflight
+    if: needs.runner-preflight.outputs.has_ebpf_runner == 'true'
+    runs-on: [self-hosted, linux, ebpf]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+      - name: Build local demo images for kind
+        run: |
+          docker build -t llm-slo-agent:ci -f cmd/agent/Dockerfile .
+          docker build -t llm-slo-rag-service:ci -f demo/rag-service/Dockerfile .
+      - name: Deploy kind baseline stack
+        run: |
+          make kind-up
+          kind load docker-image --name llm-slo-lab llm-slo-agent:ci llm-slo-rag-service:ci
+          kubectl apply -k deploy/observability
+          kubectl apply -k deploy/k8s
+          kubectl -n llm-slo-system set image daemonset/llm-slo-agent agent=llm-slo-agent:ci
+          kubectl -n llm-slo-system rollout status daemonset/llm-slo-agent --timeout=180s
+          kubectl apply -k demo/rag-service/k8s
+          kubectl -n observability set image deployment/rag-service rag-service=llm-slo-rag-service:ci
+          kubectl -n observability rollout status deployment/rag-service --timeout=180s
+      - name: Trigger DNS-heavy evidence mode
+        run: |
+          ./scripts/chaos/set_agent_mode.sh dns_latency otlp
+          kubectl -n llm-slo-system set env daemonset/llm-slo-agent \
+            ENABLE_HELLO_TRACER=true \
+            ENABLE_REAL_PROBE_METRICS=true \
+            HELLO_TARGET_COMM=rag-service,llama-server
+          kubectl -n llm-slo-system rollout status daemonset/llm-slo-agent --timeout=180s
+      - name: Capture evidence bundle
+        run: |
+          CLUSTER_PROFILE=kind-3-node \
+          AGENT_MODE=probe \
+          BACKEND_MODE=stub \
+          GENERATE_TRAFFIC=true \
+          TRAFFIC_COUNT=60 \
+          ./scripts/demo/capture_evidence.sh
+      - name: Upload evidence artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-evidence-artifacts
+          path: |
+            artifacts/evidence
+            docs/benchmarks/reports/e2e-evidence-*.md
+            dashboards/evidence-e2e.json
+            deploy/observability/prometheus-alerts.yaml
+          if-no-files-found: error
+      - name: kind teardown
+        if: always()
+        run: make kind-down
+
+  evidence-runner-required:
+    needs: runner-preflight
+    if: needs.runner-preflight.outputs.has_ebpf_runner != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail when no privileged runner is online
+        run: |
+          echo "::error::No online self-hosted linux+ebpf runner available for e2e evidence workflow."
+          echo "runner_count=${{ needs.runner-preflight.outputs.runner_count }}"
+          echo "reason=${{ needs.runner-preflight.outputs.reason }}"
+          exit 1

@@ -28,6 +28,9 @@ Measure whether kernel-grounded telemetry improves LLM incident detection and fa
 - Memory pressure / reclaim pressure.
 - Provider 429/5xx bursts.
 - Retrieval backend latency inflation.
+- Execution modes:
+  - synthetic baseline (`make chaos-matrix`)
+  - real injector mode for DNS/retransmit/CPU (`REAL_INJECTORS=true make chaos-matrix`)
 
 ## Primary Metrics
 - Detection delay from fault start to alert.
@@ -66,6 +69,7 @@ Measure whether kernel-grounded telemetry improves LLM incident detection and fa
 - Pin kernel, Kubernetes, and collector image versions.
 - Publish exact fault injection scripts and seed values.
 - Capture raw outputs and report-generation code.
+- Include per-scenario `injector_metadata.json` to disclose synthetic vs real injector path.
 - Re-run on fixed weekly profile to track drift.
 - Use nightly reduced-duration smoke scenarios for cost/runtime control.
 - Keep canonical full-duration scenario matrix in weekly benchmark runs.
