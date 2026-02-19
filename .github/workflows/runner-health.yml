@@ -1,0 +1,74 @@
+name: runner-health
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  runner-health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Discover self-hosted runner profiles
+        env:
+          RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/runner-health
+          ./scripts/ci/check_runner_profiles.sh \
+            --profiles kernel-5-15,kernel-6-8 \
+            --out artifacts/runner-health/runner-discovery.json
+
+      - name: Enforce online eBPF runner gate
+        run: |
+          set -euo pipefail
+          report="artifacts/runner-health/runner-discovery.json"
+          total="$(jq -r '.total_online_ebpf_runners // 0' "$report")"
+          reason="$(jq -r '.reason // "unknown"' "$report")"
+          count_5_15="$(jq -r '.profiles["kernel-5-15"].count // 0' "$report")"
+          count_6_8="$(jq -r '.profiles["kernel-6-8"].count // 0' "$report")"
+
+          echo "total_online_ebpf_runners=$total"
+          echo "kernel_5_15_online=$count_5_15"
+          echo "kernel_6_8_online=$count_6_8"
+          echo "discovery_reason=$reason"
+
+          if [[ "$total" -lt 1 ]]; then
+            echo "FAIL: no online self-hosted linux+ebpf runners (reason: $reason)"
+            exit 1
+          fi
+
+          if [[ "$count_5_15" -lt 1 || "$count_6_8" -lt 1 ]]; then
+            echo "::warning::One or more kernel profile runners are offline (kernel-5-15=$count_5_15, kernel-6-8=$count_6_8)"
+          fi
+
+      - name: Write health summary
+        run: |
+          set -euo pipefail
+          report="artifacts/runner-health/runner-discovery.json"
+          total="$(jq -r '.total_online_ebpf_runners // 0' "$report")"
+          reason="$(jq -r '.reason // "unknown"' "$report")"
+          count_5_15="$(jq -r '.profiles["kernel-5-15"].count // 0' "$report")"
+          count_6_8="$(jq -r '.profiles["kernel-6-8"].count // 0' "$report")"
+          {
+            echo "## Runner Health"
+            echo ""
+            echo "- total online \`self-hosted,linux,ebpf\`: **$total**"
+            echo "- kernel-5-15 online: **$count_5_15**"
+            echo "- kernel-6-8 online: **$count_6_8**"
+            echo "- discovery reason: \`$reason\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runner-health-${{ github.run_number }}
+          path: artifacts/runner-health/runner-discovery.json
+          if-no-files-found: error

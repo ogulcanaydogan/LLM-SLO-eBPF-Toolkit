@@ -46,7 +46,13 @@ jobs:
           docker build -t llm-slo-rag-service:ci -f demo/rag-service/Dockerfile .
       - name: kind smoke and deploy baseline
         run: |
-          make kind-up
+          set -euo pipefail
+          if ! make kind-up; then
+            echo "kind-up failed on first attempt, retrying once after cleanup"
+            make kind-down || true
+            sleep 10
+            make kind-up
+          fi
           kind load docker-image --name llm-slo-lab llm-slo-agent:ci llm-slo-rag-service:ci
           kubectl apply -k deploy/observability
           kubectl apply -k deploy/k8s
