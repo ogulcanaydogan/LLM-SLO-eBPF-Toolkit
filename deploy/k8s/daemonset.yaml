@@ -15,6 +15,7 @@ spec:
       serviceAccountName: llm-slo-agent
       hostPID: true
       hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       tolerations:
         - operator: Exists
       containers:
