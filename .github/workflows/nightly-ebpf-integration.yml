@@ -59,19 +59,20 @@ jobs:
           kubectl apply -k demo/rag-service/k8s
           kubectl -n observability set image deployment/rag-service rag-service=llm-slo-rag-service:ci
           kubectl -n observability rollout status deployment/rag-service --timeout=180s
-          kubectl -n observability wait --for=condition=ready pod -l app=rag-service --timeout=120s
+          kubectl -n observability wait --for=condition=available deployment/rag-service --timeout=120s
+          kubectl -n observability get pods -l app=rag-service -o wide
           kubectl -n observability port-forward svc/rag-service 18080:8080 &
           PF_PID=$!
+          trap 'kill $PF_PID 2>/dev/null || true' EXIT
           sleep 5
           RESP=$(curl -sS --max-time 30 http://localhost:18080/chat \
             -H 'content-type: application/json' \
             -d '{"prompt":"test","profile":"rag_medium","seed":42,"max_tokens":5,"stream":false}')
           echo "$RESP"
-          echo "$RESP" | grep -q '"ttft_ms"' || { echo "FAIL: missing ttft_ms"; kill $PF_PID 2>/dev/null; exit 1; }
-          echo "$RESP" | grep -q '"tokens_per_sec"' || { echo "FAIL: missing tokens_per_sec"; kill $PF_PID 2>/dev/null; exit 1; }
-          echo "$RESP" | grep -q '"trace_id"' || { echo "FAIL: missing trace_id"; kill $PF_PID 2>/dev/null; exit 1; }
+          echo "$RESP" | grep -q '"ttft_ms"' || { echo "FAIL: missing ttft_ms"; exit 1; }
+          echo "$RESP" | grep -q '"tokens_per_sec"' || { echo "FAIL: missing tokens_per_sec"; exit 1; }
+          echo "$RESP" | grep -q '"trace_id"' || { echo "FAIL: missing trace_id"; exit 1; }
           echo "PASS: RAG demo service smoke"
-          kill $PF_PID 2>/dev/null || true
       - name: Privileged eBPF smoke
         run: |
           if [ "$(id -u)" -eq 0 ]; then
