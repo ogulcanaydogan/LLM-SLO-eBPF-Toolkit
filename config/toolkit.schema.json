@@ -12,6 +12,14 @@
     "safety"
   ],
   "properties": {
+    "apiVersion": {
+      "type": "string",
+      "default": "toolkit.llm-slo.dev/v1alpha1"
+    },
+    "kind": {
+      "type": "string",
+      "default": "ToolkitConfig"
+    },
     "signal_set": {
       "type": "array",
       "minItems": 1,
@@ -23,7 +31,10 @@
           "runqueue_delay_ms",
           "connect_latency_ms",
           "tls_handshake_ms",
-          "cpu_steal_pct"
+          "cpu_steal_pct",
+          "mem_reclaim_latency_ms",
+          "disk_io_latency_ms",
+          "syscall_latency_ms"
         ]
       },
       "default": [
@@ -32,7 +43,10 @@
         "runqueue_delay_ms",
         "connect_latency_ms",
         "tls_handshake_ms",
-        "cpu_steal_pct"
+        "cpu_steal_pct",
+        "mem_reclaim_latency_ms",
+        "disk_io_latency_ms",
+        "syscall_latency_ms"
       ]
     },
     "sampling": {
@@ -94,6 +108,88 @@
           "type": "number",
           "minimum": 0,
           "default": 5
+        }
+      }
+    },
+    "webhook": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "url",
+        "secret",
+        "format",
+        "timeout_ms"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "url": {
+          "type": "string",
+          "default": ""
+        },
+        "secret": {
+          "type": "string",
+          "default": ""
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "generic",
+            "pagerduty",
+            "opsgenie"
+          ],
+          "default": "generic"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 5000
+        }
+      }
+    },
+    "cdgate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "prometheus_url",
+        "ttft_p95_ms",
+        "error_rate",
+        "burn_rate",
+        "fail_open"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "prometheus_url": {
+          "type": "string",
+          "minLength": 1,
+          "default": "http://prometheus:9090"
+        },
+        "ttft_p95_ms": {
+          "type": "number",
+          "minimum": 0,
+          "default": 800
+        },
+        "error_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.05
+        },
+        "burn_rate": {
+          "type": "number",
+          "minimum": 0,
+          "default": 2.0
+        },
+        "fail_open": {
+          "type": "boolean",
+          "default": true
         }
       }
     }
