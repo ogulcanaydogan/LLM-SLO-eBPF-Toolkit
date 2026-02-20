@@ -16,6 +16,8 @@ type ToolkitConfig struct {
 	Correlation CorrelationConfig `yaml:"correlation"`
 	OTLP        OTLPConfig        `yaml:"otlp"`
 	Safety      SafetyConfig      `yaml:"safety"`
+	Webhook     WebhookConfig     `yaml:"webhook"`
+	CDGate      CDGateConfig      `yaml:"cdgate"`
 }
 
 // SamplingConfig controls event-rate limiting.
@@ -39,6 +41,25 @@ type SafetyConfig struct {
 	MaxOverheadPct float64 `yaml:"max_overhead_pct"`
 }
 
+// WebhookConfig configures incident webhook delivery.
+type WebhookConfig struct {
+	Enabled   bool   `yaml:"enabled"`
+	URL       string `yaml:"url"`
+	Secret    string `yaml:"secret"`
+	Format    string `yaml:"format"`
+	TimeoutMS int    `yaml:"timeout_ms"`
+}
+
+// CDGateConfig configures the CD SLO gate.
+type CDGateConfig struct {
+	Enabled       bool    `yaml:"enabled"`
+	PrometheusURL string  `yaml:"prometheus_url"`
+	TTFTp95MS     float64 `yaml:"ttft_p95_ms"`
+	ErrorRate     float64 `yaml:"error_rate"`
+	BurnRate      float64 `yaml:"burn_rate"`
+	FailOpen      bool    `yaml:"fail_open"`
+}
+
 // Default returns v1alpha1 defaults.
 func Default() ToolkitConfig {
 	return ToolkitConfig{
@@ -51,6 +72,9 @@ func Default() ToolkitConfig {
 			"connect_latency_ms",
 			"tls_handshake_ms",
 			"cpu_steal_pct",
+			"mem_reclaim_latency_ms",
+			"disk_io_latency_ms",
+			"syscall_latency_ms",
 		},
 		Sampling: SamplingConfig{
 			EventsPerSecondLimit: 10000,
@@ -64,6 +88,21 @@ func Default() ToolkitConfig {
 		},
 		Safety: SafetyConfig{
 			MaxOverheadPct: 5,
+		},
+		Webhook: WebhookConfig{
+			Enabled:   false,
+			URL:       "",
+			Secret:    "",
+			Format:    "generic",
+			TimeoutMS: 5000,
+		},
+		CDGate: CDGateConfig{
+			Enabled:       false,
+			PrometheusURL: "http://prometheus:9090",
+			TTFTp95MS:     800,
+			ErrorRate:     0.05,
+			BurnRate:      2.0,
+			FailOpen:      true,
 		},
 	}
 }
@@ -84,28 +123,48 @@ func Load(path string) (ToolkitConfig, error) {
 }
 
 func normalize(cfg *ToolkitConfig) {
+	defaults := Default()
+
 	if len(cfg.SignalSet) == 0 {
-		cfg.SignalSet = Default().SignalSet
+		cfg.SignalSet = defaults.SignalSet
 	}
 	if cfg.Sampling.EventsPerSecondLimit <= 0 {
-		cfg.Sampling.EventsPerSecondLimit = Default().Sampling.EventsPerSecondLimit
+		cfg.Sampling.EventsPerSecondLimit = defaults.Sampling.EventsPerSecondLimit
 	}
 	if cfg.Sampling.BurstLimit <= 0 {
-		cfg.Sampling.BurstLimit = Default().Sampling.BurstLimit
+		cfg.Sampling.BurstLimit = defaults.Sampling.BurstLimit
 	}
 	if cfg.Correlation.WindowMS <= 0 {
-		cfg.Correlation.WindowMS = Default().Correlation.WindowMS
+		cfg.Correlation.WindowMS = defaults.Correlation.WindowMS
 	}
 	if cfg.OTLP.Endpoint == "" {
-		cfg.OTLP.Endpoint = Default().OTLP.Endpoint
+		cfg.OTLP.Endpoint = defaults.OTLP.Endpoint
 	}
 	if cfg.Safety.MaxOverheadPct <= 0 {
-		cfg.Safety.MaxOverheadPct = Default().Safety.MaxOverheadPct
+		cfg.Safety.MaxOverheadPct = defaults.Safety.MaxOverheadPct
+	}
+	if cfg.Webhook.Format == "" {
+		cfg.Webhook.Format = defaults.Webhook.Format
+	}
+	if cfg.Webhook.TimeoutMS <= 0 {
+		cfg.Webhook.TimeoutMS = defaults.Webhook.TimeoutMS
+	}
+	if cfg.CDGate.PrometheusURL == "" {
+		cfg.CDGate.PrometheusURL = defaults.CDGate.PrometheusURL
+	}
+	if cfg.CDGate.TTFTp95MS <= 0 {
+		cfg.CDGate.TTFTp95MS = defaults.CDGate.TTFTp95MS
+	}
+	if cfg.CDGate.ErrorRate <= 0 {
+		cfg.CDGate.ErrorRate = defaults.CDGate.ErrorRate
+	}
+	if cfg.CDGate.BurnRate <= 0 {
+		cfg.CDGate.BurnRate = defaults.CDGate.BurnRate
 	}
 	if cfg.APIVersion == "" {
-		cfg.APIVersion = Default().APIVersion
+		cfg.APIVersion = defaults.APIVersion
 	}
 	if cfg.Kind == "" {
-		cfg.Kind = Default().Kind
+		cfg.Kind = defaults.Kind
 	}
 }
