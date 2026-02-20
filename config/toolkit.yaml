@@ -7,6 +7,9 @@ signal_set:
   - connect_latency_ms
   - tls_handshake_ms
   - cpu_steal_pct
+  - mem_reclaim_latency_ms
+  - disk_io_latency_ms
+  - syscall_latency_ms
 sampling:
   events_per_second_limit: 10000
   burst_limit: 20000
@@ -16,3 +19,16 @@ otlp:
   endpoint: http://otel-collector:4317
 safety:
   max_overhead_pct: 5
+webhook:
+  enabled: false
+  url: ""
+  secret: ""
+  format: generic
+  timeout_ms: 5000
+cdgate:
+  enabled: false
+  prometheus_url: http://prometheus:9090
+  ttft_p95_ms: 800
+  error_rate: 0.05
+  burn_rate: 2.0
+  fail_open: true
