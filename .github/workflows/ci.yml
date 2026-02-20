@@ -51,10 +51,10 @@ jobs:
           go run ./cmd/benchgen --out artifacts/benchmarks-ci --scenario mixed_faults --input /tmp/fault_samples.jsonl
       - name: Helm lint
         run: |
-          if command -v helm >/dev/null 2>&1; then
+          if command -v helm >/dev/null 2>&1 && [ -f charts/llm-slo-agent/Chart.yaml ]; then
             helm lint charts/llm-slo-agent
           else
-            echo "helm not installed, skipping lint"
+            echo "helm or chart not available, skipping lint"
           fi
       - name: Webhook smoke test
         run: go test ./pkg/webhook/... -v -count=1
