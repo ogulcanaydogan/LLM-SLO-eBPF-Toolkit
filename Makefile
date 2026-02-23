@@ -26,6 +26,8 @@
 	m5-gate \
 	m5-candidate-rebuild \
 	m5-baseline-rebuild \
+	v1-go-eval \
+	v1-go-eval-test \
 	helm-lint \
 	helm-template \
 	cdgate-smoke \
@@ -194,6 +196,18 @@ m5-baseline-rebuild:
 		go run ./cmd/faultinject --scenario "$$scenario" --count $(M5_BASELINE_SAMPLE_COUNT) --out "$$out_dir/raw_samples.jsonl"; \
 	done
 	@printf '{\n  "source_ref": "local-baseline-rebuild",\n  "source_commit": "%s",\n  "generated_at": "%s"\n}\n' "$$(git rev-parse HEAD 2>/dev/null || echo local)" "$$(date -u +%Y-%m-%dT%H:%M:%SZ)" > $(M5_BASELINE_MANIFEST)
+
+v1-go-eval:
+	@SINCE="$${SINCE_UTC:-2026-02-23T00:00:00Z}"; \
+	REPO="$${GITHUB_REPOSITORY:-ogulcanaydogan/LLM-SLO-eBPF-Toolkit}"; \
+	if [ -n "$${SHA_LOCK:-}" ]; then \
+		./scripts/ci/evaluate_v1_go.sh --since "$$SINCE" --repo "$$REPO" --sha-lock "$$SHA_LOCK"; \
+	else \
+		./scripts/ci/evaluate_v1_go.sh --since "$$SINCE" --repo "$$REPO"; \
+	fi
+
+v1-go-eval-test:
+	./test/unit/evaluate_v1_go_test.sh
 
 runner-validate:
 	gh api repos/$${GITHUB_REPOSITORY:-ogulcanaydogan/LLM-SLO-eBPF-Toolkit}/actions/runners \

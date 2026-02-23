@@ -73,3 +73,16 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 - Scheduled privileged paths are active on `self-hosted,linux,ebpf` runners.
 - Synthetic fallback jobs were skipped on latest scheduled validation set above.
 - Release-grade evidence should continue to reference privileged runs only (`runner_mode=full-self-hosted-ebpf`, `release_grade=true`).
+- Burn-in evaluator automation added:
+  - `/Users/ogulcanaydogan/Desktop/Projects/YaPAY/eBPF + LLM Inference SLO Toolkit/scripts/ci/evaluate_v1_go.sh`
+  - `/Users/ogulcanaydogan/Desktop/Projects/YaPAY/eBPF + LLM Inference SLO Toolkit/.github/workflows/v1-go-evaluator.yml`
+
+## Latest Head Re-Validation (SHA `807d934`)
+- GO policy for v1.0.0 is **scheduled-only evidence**. Manual runs are diagnostic only and excluded from GO counting.
+- `ci`: `22326010977` success.
+- `runner-health`: `22326198080` success.
+- `runner-canary`: `22326342491` success.
+- `nightly-ebpf-integration`: `22326027877` success (`privileged-kind-integration` ran, `synthetic-fallback-integration` skipped).
+- `weekly-benchmark`: `22326027900` success (`full-benchmark-matrix` ran, `synthetic-fallback-matrix` skipped).
+- `kernel-compatibility-matrix`: `22326028010` success (`compat-kernel-5-15` and `compat-kernel-6-8` passed strict checks; unavailable stubs skipped).
+- `e2e-evidence-report`: `22326027927` success (`evidence-e2e` ran, `evidence-runner-required` skipped).

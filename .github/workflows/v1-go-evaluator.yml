@@ -1,0 +1,55 @@
+name: v1-go-evaluator
+
+on:
+  workflow_dispatch:
+    inputs:
+      since_utc:
+        description: "Burn-in start timestamp (UTC, ISO8601)"
+        required: false
+        default: "2026-02-23T00:00:00Z"
+      sha_lock:
+        description: "Optional SHA lock for strict burn-in tracking"
+        required: false
+        default: ""
+  schedule:
+    - cron: "30 7 * * *"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  evaluate-go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Evaluate v1.0.0 GO criteria (scheduled-only)
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+          SINCE_UTC_INPUT: ${{ inputs.since_utc }}
+          SHA_LOCK_INPUT: ${{ inputs.sha_lock }}
+        run: |
+          set -euo pipefail
+          chmod +x ./scripts/ci/evaluate_v1_go.sh
+          SINCE_UTC="${SINCE_UTC_INPUT:-2026-02-23T00:00:00Z}"
+          SHA_LOCK="${SHA_LOCK_INPUT:-}"
+          if [[ -n "$SHA_LOCK" ]]; then
+            ./scripts/ci/evaluate_v1_go.sh \
+              --since "$SINCE_UTC" \
+              --repo "$GITHUB_REPOSITORY" \
+              --sha-lock "$SHA_LOCK"
+          else
+            ./scripts/ci/evaluate_v1_go.sh \
+              --since "$SINCE_UTC" \
+              --repo "$GITHUB_REPOSITORY"
+          fi
+
+      - name: Upload GO evaluator artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v1-go-evaluator-${{ github.run_number }}
+          path: artifacts/release-go/
+          if-no-files-found: error

@@ -2,8 +2,8 @@
 
 This page tracks compatibility checks for privileged eBPF execution across supported runner kernel profiles.
 
-- Generated at (UTC): 2026-02-23T20:57:41Z
-- Source run: `22324433398`
+- Generated at (UTC): 2026-02-23T22:17:28Z
+- Source run: `22326028010`
 - Report source directory: `artifacts/compatibility`
 
 ## Matrix
