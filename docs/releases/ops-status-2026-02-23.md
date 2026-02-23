@@ -36,9 +36,9 @@ Timestamp (UTC): 2026-02-23T19:55:00Z
 - Added explicit runner/release-grade fields to e2e evidence report output.
 
 ## Remaining Validation To Close
-- Trigger and confirm:
-  - `runner-health` pass streak (3 dispatch runs minimum)
-  - `nightly-ebpf-integration` privileged path pass
-  - `weekly-benchmark` full matrix pass (non-fallback)
-  - `kernel-compatibility-matrix` real profile jobs pass
-  - `e2e-evidence-report` pass with evidence artifact bundle
+- Completed after recovery:
+  - `runner-health` pass streak: `22322424736`, `22322424743`, `22322424768`, `22322536095`, `22322622524`, `22322687481` (all success).
+  - `nightly-ebpf-integration` privileged path: `22322430436` success (`privileged-kind-integration` ran, fallback skipped).
+  - `weekly-benchmark` full matrix: `22322430470` success (`full-benchmark-matrix` ran, fallback skipped).
+  - `kernel-compatibility-matrix` profile jobs: `22322430375` success (real `kernel-5-15` and `kernel-6-8` jobs ran).
+  - `e2e-evidence-report`: `22322430409` success (`evidence-e2e` ran, `evidence-runner-required` skipped).

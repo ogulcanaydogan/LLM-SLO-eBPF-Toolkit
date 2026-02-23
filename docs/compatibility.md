@@ -2,16 +2,16 @@
 
 This page tracks compatibility checks for privileged eBPF execution across supported runner kernel profiles.
 
-- Generated at (UTC): 2026-02-19T20:49:48Z
-- Source run: `22199345650`
+- Generated at (UTC): 2026-02-23T20:05:00Z
+- Source run: `22322430375`
 - Report source directory: `artifacts/compatibility`
 
 ## Matrix
 
 | Profile Label | Availability | Kernel Release | BTF | `sloctl prereq` | `agent --probe-smoke` |
 |---|---|---|---|---|---|
-| `kernel-5-15` | unavailable | `n/a` | `n/a` | `n/a` | `n/a` |
-| `kernel-6-8` | unavailable | `n/a` | `n/a` | `n/a` | `n/a` |
+| `kernel-5-15` | available | `5.15.0-1084-aws` | `true` | `fail` | `skipped` |
+| `kernel-6-8` | available | `6.17.0-1007-aws` | `true` | `fail` | `skipped` |
 
 ## Interpretation
 

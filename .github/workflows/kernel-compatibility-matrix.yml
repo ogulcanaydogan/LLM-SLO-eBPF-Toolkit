@@ -51,6 +51,8 @@ jobs:
         with:
           go-version: "1.23"
       - name: Probe compatibility profile
+        env:
+          STRICT: "true"
         run: |
           mkdir -p artifacts/compatibility
           ./scripts/ci/kernel_compat_probe.sh --profile kernel-5-15 --out artifacts/compatibility/kernel-5-15.json
@@ -90,6 +92,8 @@ jobs:
         with:
           go-version: "1.23"
       - name: Probe compatibility profile
+        env:
+          STRICT: "true"
         run: |
           mkdir -p artifacts/compatibility
           ./scripts/ci/kernel_compat_probe.sh --profile kernel-6-8 --out artifacts/compatibility/kernel-6-8.json
