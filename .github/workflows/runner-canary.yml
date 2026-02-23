@@ -13,8 +13,8 @@ jobs:
   runner-discovery:
     runs-on: ubuntu-latest
     outputs:
-      profile_515_count: ${{ steps.detect.outputs.profile_515_count }}
-      profile_68_count: ${{ steps.detect.outputs.profile_68_count }}
+      profile_kfivefifteen_count: ${{ steps.detect.outputs.profile_kfivefifteen_count }}
+      profile_ksixeight_count: ${{ steps.detect.outputs.profile_ksixeight_count }}
       discovery_reason: ${{ steps.detect.outputs.discovery_reason }}
     steps:
       - uses: actions/checkout@v4
@@ -28,8 +28,8 @@ jobs:
           ./scripts/ci/check_runner_profiles.sh \
             --profiles kernel-5-15,kernel-6-8 \
             --out artifacts/runner-canary/runner-discovery.json
-          echo "profile_515_count=$(jq -r '.profiles[\"kernel-5-15\"].count // 0' artifacts/runner-canary/runner-discovery.json)" >> "$GITHUB_OUTPUT"
-          echo "profile_68_count=$(jq -r '.profiles[\"kernel-6-8\"].count // 0' artifacts/runner-canary/runner-discovery.json)" >> "$GITHUB_OUTPUT"
+          echo "profile_kfivefifteen_count=$(jq -r '.profiles[\"kernel-5-15\"].count // 0' artifacts/runner-canary/runner-discovery.json)" >> "$GITHUB_OUTPUT"
+          echo "profile_ksixeight_count=$(jq -r '.profiles[\"kernel-6-8\"].count // 0' artifacts/runner-canary/runner-discovery.json)" >> "$GITHUB_OUTPUT"
           echo "discovery_reason=$(jq -r '.reason // \"unknown\"' artifacts/runner-canary/runner-discovery.json)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
@@ -39,7 +39,7 @@ jobs:
 
   canary-kernel-5-15:
     needs: runner-discovery
-    if: needs.runner-discovery.outputs.profile_515_count != '0'
+    if: needs.runner-discovery.outputs.profile_kfivefifteen_count != '0'
     runs-on: [self-hosted, linux, ebpf, kernel-5-15]
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
 
   canary-kernel-5-15-missing:
     needs: runner-discovery
-    if: needs.runner-discovery.outputs.profile_515_count == '0'
+    if: needs.runner-discovery.outputs.profile_kfivefifteen_count == '0'
     runs-on: ubuntu-latest
     steps:
       - name: Fail missing kernel-5-15 runner profile
@@ -69,7 +69,7 @@ jobs:
 
   canary-kernel-6-8:
     needs: runner-discovery
-    if: needs.runner-discovery.outputs.profile_68_count != '0'
+    if: needs.runner-discovery.outputs.profile_ksixeight_count != '0'
     runs-on: [self-hosted, linux, ebpf, kernel-6-8]
     steps:
       - uses: actions/checkout@v4
@@ -88,7 +88,7 @@ jobs:
 
   canary-kernel-6-8-missing:
     needs: runner-discovery
-    if: needs.runner-discovery.outputs.profile_68_count == '0'
+    if: needs.runner-discovery.outputs.profile_ksixeight_count == '0'
     runs-on: ubuntu-latest
     steps:
       - name: Fail missing kernel-6-8 runner profile
