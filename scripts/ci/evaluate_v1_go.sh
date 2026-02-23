@@ -560,6 +560,11 @@ if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
   cat "$OUT_MD" >> "$GITHUB_STEP_SUMMARY"
 fi
 
-if [[ "$(jq -r '.overall_status' "$OUT_JSON")" != "pass" ]]; then
+overall_status="$(jq -r '.overall_status' "$OUT_JSON")"
+if [[ "$overall_status" != "pass" ]]; then
+  echo "v1.0 GO evaluator: FAIL" >&2
+  jq -r '.failure_reasons[] | " - " + .' "$OUT_JSON" >&2 || true
+  echo "artifacts: ${OUT_JSON}, ${OUT_MD}" >&2
   exit 1
 fi
+echo "v1.0 GO evaluator: PASS"
