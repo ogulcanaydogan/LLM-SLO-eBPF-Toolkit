@@ -59,3 +59,17 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 ## Remaining Validation
 - Continue 7-day burn-in tracking for runner stability (`runner-health` + `runner-canary`).
 - Maintain 2 consecutive weekly full-matrix privileged passes for v1.0 GO record.
+
+## Latest Head Re-Validation (SHA `1881b22`)
+- `ci`: `22324612780` success.
+- `runner-health`: `22325236557` success.
+- `runner-canary`: `22325492702` success.
+- `nightly-ebpf-integration`: `22325673589` success (`privileged-kind-integration` ran, `synthetic-fallback-integration` skipped).
+- `weekly-benchmark`: `22325673588` success (`full-benchmark-matrix` ran, `synthetic-fallback-matrix` skipped).
+- `kernel-compatibility-matrix`: `22325673716` success (`compat-kernel-5-15` and `compat-kernel-6-8` passed; unavailable stubs skipped).
+- `e2e-evidence-report`: `22325674476` success (`evidence-e2e` ran, `evidence-runner-required` skipped).
+
+## Release-Grade Routing Check (Current)
+- Scheduled privileged paths are active on `self-hosted,linux,ebpf` runners.
+- Synthetic fallback jobs were skipped on latest scheduled validation set above.
+- Release-grade evidence should continue to reference privileged runs only (`runner_mode=full-self-hosted-ebpf`, `release_grade=true`).
