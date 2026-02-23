@@ -10,89 +10,48 @@ permissions:
   actions: read
 
 jobs:
-  runner-discovery:
+  runner-canary:
     runs-on: ubuntu-latest
-    outputs:
-      profile_kfivefifteen_count: ${{ steps.detect.outputs.profile_kfivefifteen_count }}
-      profile_ksixeight_count: ${{ steps.detect.outputs.profile_ksixeight_count }}
-      discovery_reason: ${{ steps.detect.outputs.discovery_reason }}
     steps:
       - uses: actions/checkout@v4
-      - id: detect
+      - name: Discover runner profiles
         env:
           RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
+          set -euo pipefail
           mkdir -p artifacts/runner-canary
           ./scripts/ci/check_runner_profiles.sh \
             --profiles kernel-5-15,kernel-6-8 \
             --out artifacts/runner-canary/runner-discovery.json
-          echo "profile_kfivefifteen_count=$(jq -r '.profiles[\"kernel-5-15\"].count // 0' artifacts/runner-canary/runner-discovery.json)" >> "$GITHUB_OUTPUT"
-          echo "profile_ksixeight_count=$(jq -r '.profiles[\"kernel-6-8\"].count // 0' artifacts/runner-canary/runner-discovery.json)" >> "$GITHUB_OUTPUT"
-          echo "discovery_reason=$(jq -r '.reason // \"unknown\"' artifacts/runner-canary/runner-discovery.json)" >> "$GITHUB_OUTPUT"
+
+          total="$(jq -r '.total_online_ebpf_runners // 0' artifacts/runner-canary/runner-discovery.json)"
+          count_5_15="$(jq -r '.profiles["kernel-5-15"].count // 0' artifacts/runner-canary/runner-discovery.json)"
+          count_6_8="$(jq -r '.profiles["kernel-6-8"].count // 0' artifacts/runner-canary/runner-discovery.json)"
+          reason="$(jq -r '.reason // "unknown"' artifacts/runner-canary/runner-discovery.json)"
+
+          echo "total_online_ebpf_runners=$total"
+          echo "kernel_5_15_online=$count_5_15"
+          echo "kernel_6_8_online=$count_6_8"
+          echo "discovery_reason=$reason"
+
+          if [[ "$total" -lt 1 ]]; then
+            echo "::error::runner-canary: no online self-hosted linux+ebpf runners."
+            exit 1
+          fi
+
+          if [[ "$count_5_15" -lt 1 ]]; then
+            echo "::error::runner-canary: kernel-5-15 profile unavailable."
+            exit 1
+          fi
+
+          if [[ "$count_6_8" -lt 1 ]]; then
+            echo "::error::runner-canary: kernel-6-8 profile unavailable."
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         with:
-          name: runner-canary-discovery
+          name: runner-canary-${{ github.run_number }}
           path: artifacts/runner-canary/runner-discovery.json
           if-no-files-found: error
-
-  canary-kernel-5-15:
-    needs: runner-discovery
-    if: needs.runner-discovery.outputs.profile_kfivefifteen_count != '0'
-    runs-on: [self-hosted, linux, ebpf, kernel-5-15]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.23"
-      - name: Kernel profile smoke
-        run: |
-          mkdir -p artifacts/runner-canary
-          STRICT=true ./scripts/ci/kernel_compat_probe.sh --profile kernel-5-15 --out artifacts/runner-canary/kernel-5-15.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: runner-canary-kernel-5-15
-          path: artifacts/runner-canary/kernel-5-15.json
-          if-no-files-found: error
-
-  canary-kernel-5-15-missing:
-    needs: runner-discovery
-    if: needs.runner-discovery.outputs.profile_kfivefifteen_count == '0'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fail missing kernel-5-15 runner profile
-        run: |
-          echo "::error::runner-canary: no online self-hosted linux+ebpf runner with label kernel-5-15."
-          echo "reason=${{ needs.runner-discovery.outputs.discovery_reason }}"
-          exit 1
-
-  canary-kernel-6-8:
-    needs: runner-discovery
-    if: needs.runner-discovery.outputs.profile_ksixeight_count != '0'
-    runs-on: [self-hosted, linux, ebpf, kernel-6-8]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.23"
-      - name: Kernel profile smoke
-        run: |
-          mkdir -p artifacts/runner-canary
-          STRICT=true ./scripts/ci/kernel_compat_probe.sh --profile kernel-6-8 --out artifacts/runner-canary/kernel-6-8.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: runner-canary-kernel-6-8
-          path: artifacts/runner-canary/kernel-6-8.json
-          if-no-files-found: error
-
-  canary-kernel-6-8-missing:
-    needs: runner-discovery
-    if: needs.runner-discovery.outputs.profile_ksixeight_count == '0'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fail missing kernel-6-8 runner profile
-        run: |
-          echo "::error::runner-canary: no online self-hosted linux+ebpf runner with label kernel-6-8."
-          echo "reason=${{ needs.runner-discovery.outputs.discovery_reason }}"
-          exit 1
