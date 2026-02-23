@@ -1,6 +1,7 @@
 package benchmark
 
 import (
+	"encoding/json"
 	"encoding/csv"
 	"os"
 	"path/filepath"
@@ -89,6 +90,72 @@ func TestGenerateArtifactsMixedMultiScenario(t *testing.T) {
 	rows := readCSVRows(t, filepath.Join(tmp, "incident_predictions.csv"))
 	if len(rows) < 2 {
 		t.Fatal("expected at least 2 rows (header + data) in incident_predictions.csv")
+	}
+}
+
+func TestGenerateArtifactsDefaultsReleaseGradeFromRunnerMode(t *testing.T) {
+	tmp := t.TempDir()
+	t.Setenv("RUNNER_MODE", "full-self-hosted-ebpf")
+	t.Setenv("RELEASE_GRADE", "")
+	if err := GenerateArtifacts(tmp, "provider_throttle", "rag_mixed"); err != nil {
+		t.Fatalf("generate artifacts: %v", err)
+	}
+
+	summaryPath := filepath.Join(tmp, "attribution_summary.json")
+	summaryBytes, err := os.ReadFile(summaryPath)
+	if err != nil {
+		t.Fatalf("read summary: %v", err)
+	}
+	var summary map[string]any
+	if err := json.Unmarshal(summaryBytes, &summary); err != nil {
+		t.Fatalf("unmarshal summary: %v", err)
+	}
+	if summary["runner_mode"] != "full-self-hosted-ebpf" {
+		t.Fatalf("unexpected runner_mode: %v", summary["runner_mode"])
+	}
+	if summary["release_grade"] != true {
+		t.Fatalf("expected release_grade=true, got %v", summary["release_grade"])
+	}
+
+	provenancePath := filepath.Join(tmp, "provenance.json")
+	provBytes, err := os.ReadFile(provenancePath)
+	if err != nil {
+		t.Fatalf("read provenance: %v", err)
+	}
+	var provenance map[string]any
+	if err := json.Unmarshal(provBytes, &provenance); err != nil {
+		t.Fatalf("unmarshal provenance: %v", err)
+	}
+	if provenance["runner_mode"] != "full-self-hosted-ebpf" {
+		t.Fatalf("unexpected provenance runner_mode: %v", provenance["runner_mode"])
+	}
+	if provenance["release_grade"] != true {
+		t.Fatalf("expected provenance release_grade=true, got %v", provenance["release_grade"])
+	}
+}
+
+func TestGenerateArtifactsReleaseGradeEnvOverride(t *testing.T) {
+	tmp := t.TempDir()
+	t.Setenv("RUNNER_MODE", "fallback-synthetic-no-self-hosted-ebpf")
+	t.Setenv("RELEASE_GRADE", "true")
+	if err := GenerateArtifacts(tmp, "provider_throttle", "rag_mixed"); err != nil {
+		t.Fatalf("generate artifacts: %v", err)
+	}
+
+	summaryPath := filepath.Join(tmp, "attribution_summary.json")
+	summaryBytes, err := os.ReadFile(summaryPath)
+	if err != nil {
+		t.Fatalf("read summary: %v", err)
+	}
+	var summary map[string]any
+	if err := json.Unmarshal(summaryBytes, &summary); err != nil {
+		t.Fatalf("unmarshal summary: %v", err)
+	}
+	if summary["runner_mode"] != "fallback-synthetic-no-self-hosted-ebpf" {
+		t.Fatalf("unexpected runner_mode: %v", summary["runner_mode"])
+	}
+	if summary["release_grade"] != true {
+		t.Fatalf("expected release_grade=true override, got %v", summary["release_grade"])
 	}
 }
 

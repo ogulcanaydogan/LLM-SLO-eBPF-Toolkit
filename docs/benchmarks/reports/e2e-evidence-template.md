@@ -5,6 +5,8 @@
 - Cluster profile:
 - Agent mode:
 - Backend mode: `stub|llama_cpp`
+- Runner mode: `full-self-hosted-ebpf|fallback-synthetic-no-self-hosted-ebpf|unknown`
+- Release grade: `true|false`
 
 ## DaemonSet and Pod Health
 - `kubectl -n llm-slo-system get ds llm-slo-agent`

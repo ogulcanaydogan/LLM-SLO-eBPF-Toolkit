@@ -7,6 +7,8 @@
   "project": "llm-slo-ebpf-toolkit",
   "scenario": "dns_latency",
   "workload_profile": "rag_mixed",
+  "runner_mode": "full-self-hosted-ebpf",
+  "release_grade": true,
   "environment": {
     "kubernetes_version": "1.31",
     "kernel_version": "6.x",
@@ -80,6 +82,8 @@ Columns:
   "collector_image_digest": "string",
   "kernel_config_hash": "string",
   "fault_harness_version": "string",
+  "runner_mode": "full-self-hosted-ebpf|fallback-synthetic-no-self-hosted-ebpf|unknown",
+  "release_grade": true,
   "dataset_seed": 0,
   "benchmark_manifest_sha256": "string",
   "started_at": "RFC3339",

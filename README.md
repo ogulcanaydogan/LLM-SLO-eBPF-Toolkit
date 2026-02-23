@@ -674,6 +674,8 @@ gantt
 | [Helm Installation Guide](docs/guides/helm-installation.md) | Deploy the agent via Helm chart |
 | [Webhook Integration Guide](docs/guides/webhook-integration.md) | Configure PagerDuty, Opsgenie, and generic webhook delivery |
 | [CD Gate Guide](docs/guides/cd-gate.md) | Prometheus-based SLO gate for deployment pipelines |
+| [Runner Outage Playbook](docs/guides/runner-outage-playbook.md) | Recover self-hosted privileged runner capacity quickly |
+| [Operator E2E Path](docs/guides/operator-e2e-path.md) | Canonical cluster-boot to evidence-capture runbook |
 | [Architecture](docs/ARCHITECTURE.md) | System design, data flow, and package structure |
 | [v0.3.0 Release Notes](docs/releases/v0.3.0.md) | Consolidated release notes for v0.3.0 |
 

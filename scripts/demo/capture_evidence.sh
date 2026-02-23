@@ -14,6 +14,8 @@ CHECKLIST_REL="docs/demos/e2e-proof-checklist.md"
 CLUSTER_PROFILE="${CLUSTER_PROFILE:-kind-3-node}"
 AGENT_MODE="${AGENT_MODE:-probe}"
 BACKEND_MODE="${BACKEND_MODE:-stub}"
+RUNNER_MODE="${RUNNER_MODE:-unknown}"
+RELEASE_GRADE="${RELEASE_GRADE:-false}"
 GENERATE_TRAFFIC="${GENERATE_TRAFFIC:-true}"
 TRAFFIC_COUNT="${TRAFFIC_COUNT:-50}"
 
@@ -88,6 +90,8 @@ cat >> "$REPORT_PATH" <<EOF_REPORT
 - Cluster profile: ${CLUSTER_PROFILE}
 - Agent mode: ${AGENT_MODE}
 - Backend mode: ${BACKEND_MODE}
+- Runner mode: ${RUNNER_MODE}
+- Release grade: ${RELEASE_GRADE}
 - Stack: Prometheus + Grafana + Tempo + OTel Collector
 
 ## DaemonSet Status

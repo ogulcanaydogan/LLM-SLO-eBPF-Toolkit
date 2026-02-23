@@ -42,6 +42,8 @@ func GenerateArtifactsWithOptions(
 	attributionMode string,
 ) error {
 	startedAt := time.Now().UTC()
+	runnerMode := getenvOrDefault("RUNNER_MODE", "unknown")
+	releaseGrade := getenvBoolOrDefault("RELEASE_GRADE", runnerMode == "full-self-hosted-ebpf")
 	if err := os.MkdirAll(outDir, 0o755); err != nil {
 		return fmt.Errorf("create output directory: %w", err)
 	}
@@ -90,6 +92,8 @@ func GenerateArtifactsWithOptions(
 		Scenario:        scenario,
 		WorkloadProfile: workloadProfile,
 		AttributionMode: attributionMode,
+		RunnerMode:      runnerMode,
+		ReleaseGrade:    releaseGrade,
 		Environment: environmentSummary{
 			KubernetesVersion: "1.31",
 			KernelVersion:     "6.x",
@@ -124,6 +128,8 @@ func GenerateArtifactsWithOptions(
 		"collector_image_digest": getenvOrDefault("COLLECTOR_IMAGE_DIGEST", "unknown"),
 		"kernel_config_hash":     getenvOrDefault("KERNEL_CONFIG_HASH", "unknown"),
 		"fault_harness_version":  "v0.1",
+		"runner_mode":            runnerMode,
+		"release_grade":          releaseGrade,
 		"dataset_seed":           defaultDatasetSeed,
 		"started_at":             startedAt.Format(time.RFC3339),
 		"finished_at":            finishedAt.Format(time.RFC3339),
@@ -141,6 +147,8 @@ type benchmarkSummary struct {
 	Scenario        string             `json:"scenario"`
 	WorkloadProfile string             `json:"workload_profile"`
 	AttributionMode string             `json:"attribution_mode"`
+	RunnerMode      string             `json:"runner_mode"`
+	ReleaseGrade    bool               `json:"release_grade"`
 	Environment     environmentSummary `json:"environment"`
 	Metrics         metricSummary      `json:"metrics"`
 }
@@ -431,6 +439,8 @@ func writeReportMarkdown(path string, summary benchmarkSummary) error {
 			"- Scenario: `%s`\n"+
 			"- Workload: `%s`\n"+
 			"- Attribution mode: `%s`\n"+
+			"- Runner mode: `%s`\n"+
+			"- Release grade: `%t`\n"+
 			"- Attribution accuracy: `%.4f`\n"+
 			"- Detection delay median (s): `%.2f`\n"+
 			"- False positive rate: `%.4f`\n"+
@@ -442,6 +452,8 @@ func writeReportMarkdown(path string, summary benchmarkSummary) error {
 		summary.Scenario,
 		summary.WorkloadProfile,
 		summary.AttributionMode,
+		summary.RunnerMode,
+		summary.ReleaseGrade,
 		summary.Metrics.AttributionAccuracy,
 		summary.Metrics.DetectionDelayMedianSeconds,
 		summary.Metrics.FalsePositiveRate,
@@ -484,6 +496,18 @@ func getenvOrDefault(key string, fallback string) string {
 		return fallback
 	}
 	return value
+}
+
+func getenvBoolOrDefault(key string, fallback bool) bool {
+	value := os.Getenv(key)
+	if value == "" {
+		return fallback
+	}
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return fallback
+	}
+	return parsed
 }
 
 func hasExpectedDomains(samples []attribution.FaultSample) bool {

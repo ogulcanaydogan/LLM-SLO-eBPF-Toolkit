@@ -64,6 +64,8 @@ jobs:
       - name: Run full scenario matrix (7 scenarios × 3 reruns)
         run: |
           set -euo pipefail
+          export RUNNER_MODE=full-self-hosted-ebpf
+          export RELEASE_GRADE=true
           mkdir -p artifacts/weekly-benchmark
           SCENARIOS=(dns_latency cpu_throttle provider_throttle memory_pressure network_partition mixed mixed_multi)
           for SCENARIO in "${SCENARIOS[@]}"; do
@@ -157,6 +159,7 @@ jobs:
         run: |
           cat > artifacts/weekly-benchmark/runner_mode.txt <<EOF_MODE
           mode=full-self-hosted-ebpf
+          release_grade=true
           runner_count=${{ needs.runner-preflight.outputs.runner_count }}
           timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           EOF_MODE
@@ -205,6 +208,8 @@ jobs:
       - name: Run synthetic scenario matrix (fallback)
         run: |
           set -euo pipefail
+          export RUNNER_MODE=fallback-synthetic-no-self-hosted-ebpf
+          export RELEASE_GRADE=false
           mkdir -p artifacts/weekly-benchmark
           SCENARIOS=(dns_latency cpu_throttle provider_throttle memory_pressure network_partition mixed mixed_multi)
           for SCENARIO in "${SCENARIOS[@]}"; do
@@ -297,6 +302,7 @@ jobs:
         run: |
           cat > artifacts/weekly-benchmark/runner_mode.txt <<EOF_MODE
           mode=fallback-synthetic-no-self-hosted-ebpf
+          release_grade=false
           runner_count=${{ needs.runner-preflight.outputs.runner_count }}
           timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           note=Kernel-level eBPF and privileged kind checks were skipped.
@@ -318,3 +324,10 @@ jobs:
           path: artifacts/weekly-benchmark/
           retention-days: 90
           if-no-files-found: warn
+
+      - name: Enforce release-grade benchmark path
+        if: github.event_name == 'schedule'
+        run: |
+          echo "::error::Scheduled weekly benchmark requires privileged self-hosted eBPF runners."
+          echo "::error::Fallback mode artifacts are marked release_grade=false and cannot be used for release claims."
+          exit 1

@@ -63,6 +63,8 @@ jobs:
           CLUSTER_PROFILE=kind-3-node \
           AGENT_MODE=probe \
           BACKEND_MODE=stub \
+          RUNNER_MODE=full-self-hosted-ebpf \
+          RELEASE_GRADE=true \
           GENERATE_TRAFFIC=true \
           TRAFFIC_COUNT=60 \
           ./scripts/demo/capture_evidence.sh
