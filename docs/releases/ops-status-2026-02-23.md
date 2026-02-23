@@ -1,6 +1,6 @@
 # Operational Status Snapshot — 2026-02-23
 
-Timestamp (UTC): 2026-02-23T19:55:00Z
+Timestamp (UTC): 2026-02-23T21:00:00Z
 
 ## Baseline State
 - Local branch: `main`
@@ -31,14 +31,31 @@ Timestamp (UTC): 2026-02-23T19:55:00Z
 ## Follow-up Work Included In This Change Set
 - Added release-grade benchmark metadata (`runner_mode`, `release_grade`) to benchmark summaries, markdown reports, and provenance.
 - Added fallback-release guard in weekly workflow (scheduled fallback is now non-release-grade and fails).
+- Added fallback-release guard in nightly workflow (scheduled fallback now fails as non-release-grade).
 - Added runner canary workflow for profile-level discovery + smoke checks.
 - Added runner outage playbook.
 - Added explicit runner/release-grade fields to e2e evidence report output.
 
-## Remaining Validation To Close
-- Completed after recovery:
-  - `runner-health` pass streak: `22322424736`, `22322424743`, `22322424768`, `22322536095`, `22322622524`, `22322687481` (all success).
-  - `nightly-ebpf-integration` privileged path: `22322430436` success (`privileged-kind-integration` ran, fallback skipped).
-  - `weekly-benchmark` full matrix: `22322430470` success (`full-benchmark-matrix` ran, fallback skipped).
-  - `kernel-compatibility-matrix` profile jobs: `22322430375` success (real `kernel-5-15` and `kernel-6-8` jobs ran).
-  - `e2e-evidence-report`: `22322430409` success (`evidence-e2e` ran, `evidence-runner-required` skipped).
+## Operational Validation Base SHA
+- Base SHA: `31089bf` (`ci: improve kernel compatibility probe diagnostics and strict gating`)
+
+## Full-Path Validation (Base SHA `31089bf`)
+- `ci`: `22324023413` success.
+- `nightly-ebpf-integration`: `22324024825` success (`privileged-kind-integration` ran, fallback skipped).
+- `weekly-benchmark`: `22324025630` success (`full-benchmark-matrix` ran, fallback skipped).
+- `e2e-evidence-report`: `22324026363` success (`evidence-e2e` ran, `evidence-runner-required` skipped).
+- `kernel-compatibility-matrix` first rerun: `22324018288` failed on `kernel-5-15`.
+- `kernel-compatibility-matrix` post-remediation rerun: `22324433398` success (`kernel-5-15` and `kernel-6-8` both pass strict prereq + probe smoke).
+- `runner-canary`: `22324545871` success (both kernel profile labels available).
+- `runner-health`: `22324188223` and `22324546724` success.
+
+## Host Remediation Applied (Runner Fleet)
+- Applied passwordless sudo for `runner` user on both EC2 profile instances via `/etc/sudoers.d/90-gh-runner-nopasswd`.
+- Installed missing toolchain on `kernel-5-15` host: `clang` and linux-tools (`bpftool` path).
+- Updated bootstrap IaC to enforce these on future reprovision:
+  - `/Users/ogulcanaydogan/Desktop/Projects/YaPAY/eBPF + LLM Inference SLO Toolkit/infra/runner/aws/cloud-init.yaml`
+  - `/Users/ogulcanaydogan/Desktop/Projects/YaPAY/eBPF + LLM Inference SLO Toolkit/infra/runner/aws/README.md`
+
+## Remaining Validation
+- Continue 7-day burn-in tracking for runner stability (`runner-health` + `runner-canary`).
+- Maintain 2 consecutive weekly full-matrix privileged passes for v1.0 GO record.

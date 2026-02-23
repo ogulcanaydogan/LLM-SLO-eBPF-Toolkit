@@ -194,10 +194,15 @@ runcmd:
   - bash -lc 'for f in /etc/apt/sources.list.d/*.list; do [ -f "$f" ] && sed -i "s#http://#https://#g" "$f"; done'
   - bash -lc 'for f in /etc/apt/sources.list.d/*.sources; do [ -f "$f" ] && sed -i "s#http://#https://#g" "$f"; done'
   - apt-get update -y
-  - DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl jq unzip git docker.io make
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl jq unzip git docker.io make clang
+  - bash -lc 'if ! command -v bpftool >/dev/null 2>&1; then DEBIAN_FRONTEND=noninteractive apt-get install -y bpftool || true; fi'
+  - bash -lc 'if ! command -v bpftool >/dev/null 2>&1; then DEBIAN_FRONTEND=noninteractive apt-get install -y linux-tools-common linux-tools-aws || true; fi'
+  - bash -lc 'if ! command -v bpftool >/dev/null 2>&1; then DEBIAN_FRONTEND=noninteractive apt-get install -y linux-tools-common linux-tools-generic || true; fi'
+  - bash -lc 'if ! command -v bpftool >/dev/null 2>&1; then CAND=$(find /usr/lib/linux-tools* -name bpftool 2>/dev/null | head -n1 || true); if [ -n "$CAND" ]; then ln -sf "$CAND" /usr/local/bin/bpftool; fi; fi'
   - bash -lc 'if ! command -v aws >/dev/null 2>&1; then curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip && rm -rf /tmp/aws && unzip -q /tmp/awscliv2.zip -d /tmp && /tmp/aws/install --update; fi'
   - useradd -m -s /bin/bash runner || true
   - usermod -aG docker runner
+  - bash -lc 'printf "runner ALL=(ALL) NOPASSWD:ALL\n" > /etc/sudoers.d/90-gh-runner-nopasswd && chmod 440 /etc/sudoers.d/90-gh-runner-nopasswd'
   - mkdir -p /opt/actions-runner
   - chown -R runner:runner /opt/actions-runner
   - systemctl enable docker
