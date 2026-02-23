@@ -98,13 +98,19 @@ go build -o "${BINDIR}/agent" ./cmd/agent
 prereq_status="fail"
 prereq_detail=""
 prereq_json_path="$(dirname "$OUT")/${PROFILE}-prereq.json"
-if run_privileged "${BINDIR}/sloctl" prereq check --output json --strict > "$prereq_json_path" 2>"$PREREQ_ERR_FILE"; then
+if run_privileged "${BINDIR}/sloctl" prereq check --output json > "$prereq_json_path" 2>"$PREREQ_ERR_FILE"; then
   prereq_status="pass"
 else
   prereq_status="fail"
 fi
 if [[ -s "$PREREQ_ERR_FILE" ]]; then
   prereq_detail="$(tr '\n' ' ' <"$PREREQ_ERR_FILE")"
+fi
+if [[ "$prereq_status" != "pass" && -z "$prereq_detail" && -f "$prereq_json_path" ]]; then
+  failed_checks="$(jq -r '[.checks[]? | select(.pass == false) | .name] | join(",")' "$prereq_json_path" 2>/dev/null || true)"
+  if [[ -n "$failed_checks" ]]; then
+    prereq_detail="failed checks: ${failed_checks}"
+  fi
 fi
 
 probe_status="fail"
@@ -183,6 +189,19 @@ jq -n \
   }' > "$OUT"
 
 if [[ "$STRICT" == "true" ]]; then
-  [[ "$prereq_status" == "pass" ]] || exit 1
-  [[ "$probe_status" == "pass" ]] || exit 1
+  if [[ "$prereq_status" != "pass" || "$probe_status" != "pass" ]]; then
+    echo "compat probe failed for ${PROFILE}" >&2
+    echo "validation_mode=${validation_mode} privilege_mode=${privilege_mode} executed_as_root=${executed_as_root} sudo_available=${sudo_available}" >&2
+    echo "prereq_status=${prereq_status} probe_status=${probe_status}" >&2
+    if [[ -n "$failure_reason" ]]; then
+      echo "failure_reason=${failure_reason}" >&2
+    fi
+    if [[ -n "$prereq_detail" ]]; then
+      echo "prereq_detail=${prereq_detail}" >&2
+    fi
+    if [[ -n "$probe_detail" ]]; then
+      echo "probe_detail=${probe_detail}" >&2
+    fi
+    exit 1
+  fi
 fi
