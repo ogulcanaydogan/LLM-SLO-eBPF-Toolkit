@@ -10,7 +10,7 @@ on:
       sha_lock:
         description: "SHA lock for strict burn-in tracking"
         required: false
-        default: "635d1cd16fb97583769d2fe92a6369278af74bb3"
+        default: "25bb6d7e1ad20db21b4dd2e46d3a4a900df70371"
   schedule:
     - cron: "30 7 * * *"
 
@@ -34,7 +34,7 @@ jobs:
           set -euo pipefail
           chmod +x ./scripts/ci/evaluate_v1_go.sh
           SINCE_UTC="${SINCE_UTC_INPUT:-2026-03-06T00:00:00Z}"
-          SHA_LOCK="${SHA_LOCK_INPUT:-635d1cd16fb97583769d2fe92a6369278af74bb3}"
+          SHA_LOCK="${SHA_LOCK_INPUT:-25bb6d7e1ad20db21b4dd2e46d3a4a900df70371}"
           ./scripts/ci/evaluate_v1_go.sh \
             --since "$SINCE_UTC" \
             --repo "$GITHUB_REPOSITORY" \
