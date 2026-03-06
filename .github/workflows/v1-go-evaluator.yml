@@ -8,9 +8,9 @@ on:
         required: false
         default: "2026-03-06T00:00:00Z"
       sha_lock:
-        description: "SHA lock for strict burn-in tracking"
+        description: "SHA lock for strict burn-in tracking (optional override)"
         required: false
-        default: "25bb6d7e1ad20db21b4dd2e46d3a4a900df70371"
+        default: ""
   schedule:
     - cron: "30 7 * * *"
 
@@ -30,11 +30,16 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SINCE_UTC_INPUT: ${{ inputs.since_utc }}
           SHA_LOCK_INPUT: ${{ inputs.sha_lock }}
+          BURNIN_SHA_LOCK_VAR: ${{ vars.BURNIN_SHA_LOCK }}
         run: |
           set -euo pipefail
           chmod +x ./scripts/ci/evaluate_v1_go.sh
           SINCE_UTC="${SINCE_UTC_INPUT:-2026-03-06T00:00:00Z}"
-          SHA_LOCK="${SHA_LOCK_INPUT:-25bb6d7e1ad20db21b4dd2e46d3a4a900df70371}"
+          SHA_LOCK="${SHA_LOCK_INPUT:-${BURNIN_SHA_LOCK_VAR:-}}"
+          if [[ -z "$SHA_LOCK" ]]; then
+            echo "::error::BURNIN_SHA_LOCK is empty. Set repository variable BURNIN_SHA_LOCK or pass workflow_dispatch input sha_lock."
+            exit 1
+          fi
           ./scripts/ci/evaluate_v1_go.sh \
             --since "$SINCE_UTC" \
             --repo "$GITHUB_REPOSITORY" \
