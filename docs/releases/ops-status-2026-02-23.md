@@ -88,10 +88,10 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 - `e2e-evidence-report`: `22326027927` success (`evidence-e2e` ran, `evidence-runner-required` skipped).
 
 ## Burn-in Baseline Reset and Runner Hardening (2026-03-06)
-- Current implementation SHA: `9c7c198`.
+- Current implementation SHA: `044b641`.
 - Burn-in evaluator baseline reset:
   - `since_utc`: `2026-03-06T00:00:00Z`
-  - `sha_lock`: `25bb6d7e1ad20db21b4dd2e46d3a4a900df70371` (post-reset validation commit)
+  - `sha_lock`: `044b641e4586011731fa6f8d83a3f84032f7ad0e` (repository variable `BURNIN_SHA_LOCK`)
 - Runner fleet remediation:
   - Started runner profile instances `i-0d7159c2053f4831a` and `i-0545283dc4f1dd24c`.
   - Enabled EC2 stop protection (`disable-api-stop=true`) on both instances.
