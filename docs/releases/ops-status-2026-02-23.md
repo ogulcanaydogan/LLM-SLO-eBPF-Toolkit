@@ -86,3 +86,27 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 - `weekly-benchmark`: `22326027900` success (`full-benchmark-matrix` ran, `synthetic-fallback-matrix` skipped).
 - `kernel-compatibility-matrix`: `22326028010` success (`compat-kernel-5-15` and `compat-kernel-6-8` passed strict checks; unavailable stubs skipped).
 - `e2e-evidence-report`: `22326027927` success (`evidence-e2e` ran, `evidence-runner-required` skipped).
+
+## Burn-in Baseline Reset and Runner Hardening (2026-03-06)
+- Current implementation SHA: `9c7c198`.
+- Burn-in evaluator baseline reset:
+  - `since_utc`: `2026-03-06T00:00:00Z`
+  - `sha_lock`: `25bb6d7e1ad20db21b4dd2e46d3a4a900df70371` (post-reset validation commit)
+- Runner fleet remediation:
+  - Started runner profile instances `i-0d7159c2053f4831a` and `i-0545283dc4f1dd24c`.
+  - Enabled EC2 stop protection (`disable-api-stop=true`) on both instances.
+  - Enabled EC2 termination protection (`disable-api-termination=true`) on both instances.
+  - Verified profile discovery: `total_online_ebpf_runners=2`, `kernel-5-15=available`, `kernel-6-8=available`.
+
+## Manual Validation Sweep (Diagnostic, Non-GO)
+- `nightly-ebpf-integration`: `22756943368` success (`privileged-kind-integration` success, `synthetic-fallback-integration` skipped).
+- `weekly-benchmark`: `22756944159` success (`full-benchmark-matrix` success, `synthetic-fallback-matrix` skipped).
+- `kernel-compatibility-matrix`: `22756945076` success (`compat-kernel-5-15` and `compat-kernel-6-8` success; unavailable stubs skipped).
+- `e2e-evidence-report`: `22756945915` success (`evidence-e2e` success, `evidence-runner-required` skipped).
+- `runner-health`: `22756946604` success.
+- `runner-canary`: `22756947391` success.
+
+## Evaluator Check After Reset
+- `v1-go-evaluator`: `22757281236` fail is expected at this stage.
+- Failure reasons now indicate only burn-in accumulation gaps (7-day and 2x scheduled windows), not stale pre-reset history.
+- Next GO-relevant signal is scheduled windows on/after Monday, March 9, 2026.
