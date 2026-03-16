@@ -1,5 +1,5 @@
 # LLM SLO eBPF Toolkit
-[\![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12184/badge)](https://www.bestpractices.dev/projects/12184)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12184/badge)](https://www.bestpractices.dev/projects/12184)
 
 [![CI](https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
