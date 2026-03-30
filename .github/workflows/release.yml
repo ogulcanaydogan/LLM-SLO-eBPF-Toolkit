@@ -156,7 +156,14 @@ jobs:
             CHART_DIGEST="$(echo "${HELM_PUSH_OUTPUT}" | grep -Eo 'sha256:[a-f0-9]+' | tail -n1 || true)"
           fi
           if [[ -z "${CHART_DIGEST}" ]]; then
-            echo "::error::Failed to resolve Helm chart digest from helm push output."
+            FILE_SHA="$(sha256sum "${CHART_PACKAGE}" | awk '{print $1}')"
+            if [[ -n "${FILE_SHA}" ]]; then
+              CHART_DIGEST="sha256:${FILE_SHA}"
+              echo "::warning::Helm registry digest missing from push output; using package file digest fallback."
+            fi
+          fi
+          if [[ -z "${CHART_DIGEST}" ]]; then
+            echo "::error::Failed to resolve Helm chart digest from helm push output or package hash."
             exit 1
           fi
           echo "chart_file=$(basename "${CHART_PACKAGE}")" >> "$GITHUB_OUTPUT"
