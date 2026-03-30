@@ -137,3 +137,24 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 
 ## Final Closure
 - v1.0.0 GA complete, GO gate closed on 2026-03-30.
+
+## v1.0.1 Post-GA Hardening Closure (2026-03-30)
+- `main` SHA (hardening final): `75962836e35552650fc622ff43b4484af0ecdd4a`
+- CI validation on final SHA:
+  - `ci`: `23745033173` success.
+- Post-GA monitoring validations on final SHA:
+  - `v1-go-evaluator` (workflow_dispatch, default `post_ga_monitoring`): `23745253586` success.
+  - `runner-health` (workflow_dispatch): `23745255471` success.
+- v1.0.1 GA release publication:
+  - Tag: `v1.0.1`
+  - Release workflow: `23745046189` success.
+  - Release URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/releases/tag/v1.0.1
+- v1.0.1 release artifact integrity:
+  - Required assets present: binaries, `checksums-sha256.txt`, `sbom-spdx.json`, `provenance.json`, `release-artifacts.json`, `llm-slo-agent-1.0.1.tgz`.
+  - `release-artifacts.json` digests verified non-empty:
+    - agent: `sha256:270a7a374226c54a4f6a8b979590004ead2e0b09f4a5fbac2f02cbc8c9b2380e`
+    - rag_service: `sha256:6380bcab6ccbdabd609d4b29198c3fa4b15c086218f63bd49944988e8cba4018`
+    - helm_chart: `sha256:5245927ac2a934da7da49da073483da5b8616fe15f2c856041923b408b2122c6`
+- Scheduled release-grade evidence policy remains unchanged:
+  - release-grade evidence = scheduled + privileged paths only.
+  - latest scheduled reference set remains 2026-03-30 windows (`weekly-benchmark` `23731451140`, `nightly-ebpf-integration` `23727932128`) with fallback jobs skipped.
