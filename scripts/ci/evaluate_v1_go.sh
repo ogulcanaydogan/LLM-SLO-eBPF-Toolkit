@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: evaluate_v1_go.sh --since <ISO8601_UTC> [--repo <owner/repo>] [--sha-lock <sha>] [--out-json <path>] [--out-md <path>]
+Usage: evaluate_v1_go.sh --since <ISO8601_UTC> [--repo <owner/repo>] [--sha-lock <sha>] [--policy-mode <scheduled_only|post_ga_monitoring>] [--out-json <path>] [--out-md <path>]
 
 Examples:
   ./scripts/ci/evaluate_v1_go.sh --since 2026-02-23T00:00:00Z --repo ogulcanaydogan/LLM-SLO-eBPF-Toolkit
@@ -11,7 +11,9 @@ Examples:
   ./scripts/ci/evaluate_v1_go.sh --since 2026-02-23T00:00:00Z --fixtures-dir test/unit/fixtures/v1-go/all-pass
 
 Notes:
-  - Only scheduled workflow runs are counted (policy_mode=scheduled_only).
+  - Only scheduled workflow runs are counted.
+  - policy_mode=scheduled_only enforces blocking GO gate behavior.
+  - policy_mode=post_ga_monitoring produces non-blocking monitoring reports.
   - Manual runs are diagnostic only and excluded from GO counting.
   - Release criterion is non-blocking before v1.0.0 tag exists.
 EOF
@@ -20,6 +22,7 @@ EOF
 SINCE=""
 REPO="${GITHUB_REPOSITORY:-}"
 SHA_LOCK=""
+POLICY_MODE="scheduled_only"
 OUT_JSON="artifacts/release-go/v1_go_status.json"
 OUT_MD="artifacts/release-go/v1_go_status.md"
 FIXTURES_DIR=""
@@ -36,6 +39,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --sha-lock)
       SHA_LOCK="${2:-}"
+      shift 2
+      ;;
+    --policy-mode)
+      POLICY_MODE="${2:-}"
       shift 2
       ;;
     --out-json)
@@ -64,6 +71,11 @@ done
 
 if [[ -z "$SINCE" ]]; then
   echo "--since is required (example: 2026-02-23T00:00:00Z)" >&2
+  exit 2
+fi
+
+if [[ "$POLICY_MODE" != "scheduled_only" && "$POLICY_MODE" != "post_ga_monitoring" ]]; then
+  echo "--policy-mode must be one of: scheduled_only, post_ga_monitoring" >&2
   exit 2
 fi
 
@@ -513,7 +525,7 @@ evaluate_release_artifacts
 EVAL_TS="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 jq -n \
   --arg evaluation_timestamp_utc "$EVAL_TS" \
-  --arg policy_mode "scheduled_only" \
+  --arg policy_mode "$POLICY_MODE" \
   --arg repo "$REPO" \
   --arg since "$SINCE" \
   --arg sha_lock "$SHA_LOCK" \
@@ -533,7 +545,7 @@ jq -n \
   echo "# v1.0.0 GO Evaluator"
   echo
   echo "- Evaluation timestamp (UTC): \`${EVAL_TS}\`"
-  echo "- Policy mode: \`scheduled_only\`"
+  echo "- Policy mode: \`${POLICY_MODE}\`"
   echo "- Repository: \`${REPO}\`"
   echo "- Since: \`${SINCE}\`"
   if [[ -n "$SHA_LOCK" ]]; then
@@ -562,6 +574,12 @@ fi
 
 overall_status="$(jq -r '.overall_status' "$OUT_JSON")"
 if [[ "$overall_status" != "pass" ]]; then
+  if [[ "$POLICY_MODE" == "post_ga_monitoring" ]]; then
+    echo "v1.0 GO evaluator: FAIL (non-blocking in post_ga_monitoring mode)" >&2
+    jq -r '.failure_reasons[] | " - " + .' "$OUT_JSON" >&2 || true
+    echo "artifacts: ${OUT_JSON}, ${OUT_MD}" >&2
+    exit 0
+  fi
   echo "v1.0 GO evaluator: FAIL" >&2
   jq -r '.failure_reasons[] | " - " + .' "$OUT_JSON" >&2 || true
   echo "artifacts: ${OUT_JSON}, ${OUT_MD}" >&2

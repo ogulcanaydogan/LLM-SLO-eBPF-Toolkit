@@ -4,6 +4,9 @@ on:
   push:
     tags: ["v*"]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 permissions:
   contents: write
   id-token: write
@@ -143,17 +146,26 @@ jobs:
       - name: Package and push Helm chart to GHCR OCI
         id: helm_chart
         run: |
+          set -euo pipefail
           CHART_VERSION="${GITHUB_REF_NAME#v}"
           CHART_PACKAGE=$(helm package charts/llm-slo-agent --version "${CHART_VERSION}" --app-version "${GITHUB_REF_NAME}" -d dist/ | awk '{print $NF}')
           HELM_PUSH_OUTPUT=$(helm push "${CHART_PACKAGE}" "oci://${REGISTRY}/${{ steps.image.outputs.owner_lc }}/charts")
           echo "${HELM_PUSH_OUTPUT}"
-          CHART_DIGEST=$(echo "${HELM_PUSH_OUTPUT}" | grep -Eo 'sha256:[a-f0-9]+' | head -n1)
+          CHART_DIGEST="$(echo "${HELM_PUSH_OUTPUT}" | awk '/Digest:/ {print $2}' | tail -n1 | tr -d '\r')"
+          if [[ -z "${CHART_DIGEST}" ]]; then
+            CHART_DIGEST="$(echo "${HELM_PUSH_OUTPUT}" | grep -Eo 'sha256:[a-f0-9]+' | tail -n1 || true)"
+          fi
+          if [[ -z "${CHART_DIGEST}" ]]; then
+            echo "::error::Failed to resolve Helm chart digest from helm push output."
+            exit 1
+          fi
           echo "chart_file=$(basename "${CHART_PACKAGE}")" >> "$GITHUB_OUTPUT"
           echo "chart_digest=${CHART_DIGEST}" >> "$GITHUB_OUTPUT"
 
       - name: Write release artifact manifest
         run: |
-          cat > dist/release-artifacts.json <<EOF
+          set -euo pipefail
+          cat > dist/release-artifacts.json <<EOF_MANIFEST
           {
             "version": "${{ github.ref_name }}",
             "agent": {
@@ -176,7 +188,16 @@ jobs:
               "file": "checksums-sha256.txt"
             }
           }
-          EOF
+          EOF_MANIFEST
+
+      - name: Enforce release artifact digest fields
+        run: |
+          set -euo pipefail
+          jq -e '
+            (.agent.digest | type == "string" and length > 0) and
+            (.rag_service.digest | type == "string" and length > 0) and
+            (.helm_chart.digest | type == "string" and length > 0)
+          ' dist/release-artifacts.json >/dev/null
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

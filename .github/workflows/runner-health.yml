@@ -5,9 +5,13 @@ on:
     - cron: "*/30 * * * *"
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 permissions:
   contents: read
   actions: read
+  issues: write
 
 jobs:
   runner-health:
@@ -28,6 +32,8 @@ jobs:
             --out artifacts/runner-health/runner-discovery.json
 
       - name: Enforce online eBPF runner gate
+        id: enforce_gate
+        continue-on-error: true
         run: |
           set -euo pipefail
           report="artifacts/runner-health/runner-discovery.json"
@@ -50,7 +56,40 @@ jobs:
             echo "::warning::One or more kernel profile runners are offline (kernel-5-15=$count_5_15, kernel-6-8=$count_6_8)"
           fi
 
+      - name: Open or update runner outage issue
+        if: github.event_name == 'schedule' && steps.enforce_gate.outcome == 'failure'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+        run: |
+          set -euo pipefail
+          report="artifacts/runner-health/runner-discovery.json"
+          total="$(jq -r '.total_online_ebpf_runners // 0' "$report")"
+          reason="$(jq -r '.reason // "unknown"' "$report")"
+          if [[ "$total" -ge 1 ]]; then
+            echo "Runner count recovered; skipping outage issue update."
+            exit 0
+          fi
+
+          title="runner-health: zero online self-hosted linux+ebpf runners"
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          body="Automated runner-health alert.\n\n- total_online_ebpf_runners: ${total}\n- reason: ${reason}\n- workflow run: ${run_url}\n\nPlease follow docs/guides/runner-outage-playbook.md."
+
+          existing_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "${title} in:title" --json number,title --jq '.[] | select(.title == "'"$title"'") | .number' | head -n1 || true)"
+
+          if [[ -n "$existing_number" ]]; then
+            gh issue comment "$existing_number" --repo "$GITHUB_REPOSITORY" --body "$body"
+            echo "Updated existing outage issue #${existing_number}."
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"
+            echo "Created new outage issue."
+          fi
+
       - name: Write health summary
+        if: always()
         run: |
           set -euo pipefail
           report="artifacts/runner-health/runner-discovery.json"
@@ -65,10 +104,19 @@ jobs:
             echo "- kernel-5-15 online: **$count_5_15**"
             echo "- kernel-6-8 online: **$count_6_8**"
             echo "- discovery reason: \`$reason\`"
+            echo "- gate outcome: **${{ steps.enforce_gate.outcome }}**"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload health artifact
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: runner-health-${{ github.run_number }}
           path: artifacts/runner-health/runner-discovery.json
           if-no-files-found: error
+
+      - name: Fail job when runner gate fails
+        if: steps.enforce_gate.outcome == 'failure'
+        run: |
+          echo "::error::No online self-hosted linux+ebpf runners."
+          exit 1

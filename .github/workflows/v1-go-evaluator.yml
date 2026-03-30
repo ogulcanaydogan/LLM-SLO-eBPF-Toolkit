@@ -11,8 +11,19 @@ on:
         description: "SHA lock for strict burn-in tracking (optional override)"
         required: false
         default: ""
+      policy_mode:
+        description: "Evaluator mode"
+        required: false
+        default: "post_ga_monitoring"
+        type: choice
+        options:
+          - post_ga_monitoring
+          - scheduled_only
   schedule:
     - cron: "30 7 * * *"
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 permissions:
   contents: read
@@ -24,18 +35,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Evaluate v1.0.0 GO criteria (scheduled-only)
+      - name: Evaluate v1.0 GO criteria
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ github.token }}
           SINCE_UTC_INPUT: ${{ inputs.since_utc }}
           SHA_LOCK_INPUT: ${{ inputs.sha_lock }}
+          POLICY_MODE_INPUT: ${{ inputs.policy_mode }}
           BURNIN_SHA_LOCK_VAR: ${{ vars.BURNIN_SHA_LOCK }}
         run: |
           set -euo pipefail
           chmod +x ./scripts/ci/evaluate_v1_go.sh
           SINCE_UTC="${SINCE_UTC_INPUT:-2026-03-06T00:00:00Z}"
           SHA_LOCK="${SHA_LOCK_INPUT:-${BURNIN_SHA_LOCK_VAR:-}}"
+          POLICY_MODE="${POLICY_MODE_INPUT:-post_ga_monitoring}"
           if [[ -z "$SHA_LOCK" ]]; then
             echo "::error::BURNIN_SHA_LOCK is empty. Set repository variable BURNIN_SHA_LOCK or pass workflow_dispatch input sha_lock."
             exit 1
@@ -43,7 +56,8 @@ jobs:
           ./scripts/ci/evaluate_v1_go.sh \
             --since "$SINCE_UTC" \
             --repo "$GITHUB_REPOSITORY" \
-            --sha-lock "$SHA_LOCK"
+            --sha-lock "$SHA_LOCK" \
+            --policy-mode "$POLICY_MODE"
 
       - name: Upload GO evaluator artifacts
         if: always()

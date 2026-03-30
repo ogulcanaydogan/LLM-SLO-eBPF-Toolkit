@@ -134,3 +134,6 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
     - helm_chart: `sha256:db1a2e8f63d8d0dd578217852dda00b70194e967674cfa0976c9b7ed612f679c`
 - Evidence policy statement:
   - Release-grade claim sources remain scheduled + privileged paths only; fallback artifacts are excluded from GA evidence.
+
+## Final Closure
+- v1.0.0 GA complete, GO gate closed on 2026-03-30.
