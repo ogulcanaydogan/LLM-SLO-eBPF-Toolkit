@@ -110,3 +110,27 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 - `v1-go-evaluator`: `22757281236` fail is expected at this stage.
 - Failure reasons now indicate only burn-in accumulation gaps (7-day and 2x scheduled windows), not stale pre-reset history.
 - Next GO-relevant signal is scheduled windows on/after Monday, March 9, 2026.
+
+## v1.0.0 GA Cut Evidence (2026-03-30)
+- Burn-in lock alignment:
+  - `main` SHA at cut: `1e01324e8815c77c7198e632d187e8227d47ca33`
+  - `BURNIN_SHA_LOCK`: `1e01324e8815c77c7198e632d187e8227d47ca33`
+- Scheduled GO gate:
+  - `v1-go-evaluator`: `23734418843` success (`evaluate-go` success, event=`schedule`).
+- Scheduled privileged evidence set (all success, fallback skipped where applicable):
+  - `weekly-benchmark`: `23731451140` (`full-benchmark-matrix` success, `synthetic-fallback-matrix` skipped).
+  - `kernel-compatibility-matrix`: `23730165792` (`compat-kernel-5-15` and `compat-kernel-6-8` success).
+  - `e2e-evidence-report`: `23729546132` (`evidence-e2e` success, `evidence-runner-required` skipped).
+  - `nightly-ebpf-integration`: `23727932128` (`privileged-kind-integration` success, `synthetic-fallback-integration` skipped).
+- GA release publication:
+  - Tag: `v1.0.0`
+  - Release workflow: `23740998931` success.
+  - Release URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/releases/tag/v1.0.0
+- Release artifact integrity:
+  - Required assets published: binaries, `checksums-sha256.txt`, `sbom-spdx.json`, `provenance.json`, `release-artifacts.json`, `llm-slo-agent-1.0.0.tgz`.
+  - `release-artifacts.json` digests verified:
+    - agent: `sha256:3f66e372ec241695379c697b5e6cdfbc001d1f9fb213e74cde554a6d7ad164f3`
+    - rag_service: `sha256:c5b160390155513b7157e30113088d9c132815a2bcbb0d8feffd8e97f753e0f6`
+    - helm_chart: `sha256:db1a2e8f63d8d0dd578217852dda00b70194e967674cfa0976c9b7ed612f679c`
+- Evidence policy statement:
+  - Release-grade claim sources remain scheduled + privileged paths only; fallback artifacts are excluded from GA evidence.
