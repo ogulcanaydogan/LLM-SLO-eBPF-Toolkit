@@ -9,6 +9,9 @@ This Terraform stack provisions one or more EC2 hosts that run continuously re-r
 - IAM role + instance profile:
   - `AmazonSSMManagedInstanceCore`
   - `ssm:GetParameter` on one SecureString path (PAT)
+- EC2 API protection enabled by default:
+  - `disable_api_stop = true`
+  - `disable_api_termination = true`
 - cloud-init bootstrap for Docker + kind + kubectl + helm + runner service
   - bootstrap rewrites apt mirrors to `https://` so package install works with egress `443` only
   - bootstrap installs AWS CLI v2 fallback when distro package is unavailable
@@ -51,6 +54,8 @@ aws_region        = "us-east-1"
 vpc_id            = "vpc-xxxx"
 github_repository = "ogulcanaydogan/LLM-SLO-eBPF-Toolkit"
 runner_name_prefix = "llm-slo-ebpf"
+disable_api_stop = true
+disable_api_termination = true
 
 runner_profiles = {
   kernel_5_15 = {

@@ -50,19 +50,20 @@ locals {
     }
   }
 
-  runner_profiles = length(var.runner_profiles) > 0 ? var.runner_profiles : local.default_runner_profile
+  runner_profiles    = length(var.runner_profiles) > 0 ? var.runner_profiles : local.default_runner_profile
+  has_default_subnet = try(trimspace(var.subnet_id), "") != ""
 }
 
 check "runner_subnet_configuration" {
   assert {
-    condition     = length(var.runner_profiles) > 0 || (var.subnet_id != null && trimspace(var.subnet_id) != "")
+    condition     = length(var.runner_profiles) > 0 || local.has_default_subnet
     error_message = "subnet_id must be set when runner_profiles is empty."
   }
 
   assert {
     condition = alltrue([
       for _, profile in var.runner_profiles :
-      ((var.subnet_id != null && trimspace(var.subnet_id) != "") || (try(profile.subnet_id, null) != null && trimspace(try(profile.subnet_id, "")) != ""))
+      (local.has_default_subnet || try(trimspace(profile.subnet_id), "") != "")
     ])
     error_message = "Each runner profile must define subnet_id or use top-level subnet_id."
   }
@@ -136,13 +137,15 @@ resource "aws_security_group" "runner" {
 resource "aws_instance" "runner" {
   for_each = local.runner_profiles
 
-  ami = try(each.value.ami_id, "") != "" ? each.value.ami_id : data.aws_ami.ubuntu_2204.id
+  ami = try(trimspace(each.value.ami_id), "") != "" ? each.value.ami_id : data.aws_ami.ubuntu_2204.id
 
   instance_type               = coalesce(try(each.value.instance_type, null), var.instance_type)
   subnet_id                   = coalesce(try(each.value.subnet_id, null), var.subnet_id)
   vpc_security_group_ids      = [aws_security_group.runner.id]
   iam_instance_profile        = aws_iam_instance_profile.runner.name
   associate_public_ip_address = true
+  disable_api_stop            = var.disable_api_stop
+  disable_api_termination     = var.disable_api_termination
 
   metadata_options {
     http_endpoint               = "enabled"

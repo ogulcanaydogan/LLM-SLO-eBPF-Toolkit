@@ -158,3 +158,32 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 - Scheduled release-grade evidence policy remains unchanged:
   - release-grade evidence = scheduled + privileged paths only.
   - latest scheduled reference set remains 2026-03-30 windows (`weekly-benchmark` `23731451140`, `nightly-ebpf-integration` `23727932128`) with fallback jobs skipped.
+
+## Runner Outage Recovery (2026-04-02, Work AWS Account)
+- Outage signal:
+  - `runner-health` scheduled failures: `23887613724`, `23889450509`, `23891381726`, `23892302136`, `23893645764`.
+  - `runner-canary` scheduled failures: `23887657097`, `23889661343`, `23891630201`, `23893894809`.
+  - GitHub issue opened by guardrail automation: `#25`.
+- Root cause:
+  - Previous runner EC2 instances were terminated and runner inventory dropped to zero online `self-hosted,linux,ebpf` capacity.
+- Recovery execution:
+  - Switched provisioning to work AWS account `736242394405` (no further changes on personal account).
+  - Reprovisioned runner fleet with Terraform in `infra/runner/aws` on work account default VPC `vpc-0a909261ff33af5a2`.
+  - New instances:
+    - `kernel_5_15`: `i-044105e8a98ef0878`
+    - `kernel_6_8`: `i-0b1e838d5daccef95`
+  - Verified protection attributes on both instances:
+    - `disableApiStop=true`
+    - `disableApiTermination=true`
+  - Removed stale offline GitHub runner records `id=213` and `id=214`.
+- Post-recovery dispatch validation (privileged path):
+  - `runner-health`: `23896502110` success.
+  - `runner-canary`: `23896502824` success.
+  - `nightly-ebpf-integration`: `23896503799` success (`privileged-kind-integration` success, `synthetic-fallback-integration` skipped).
+  - `weekly-benchmark`: `23896504960` success (`full-benchmark-matrix` success, `synthetic-fallback-matrix` skipped).
+  - `kernel-compatibility-matrix`: `23896506126` success (`compat-kernel-5-15` + `compat-kernel-6-8` success, unavailable jobs skipped).
+  - `e2e-evidence-report`: `23896507000` success (`evidence-e2e` success, `evidence-runner-required` skipped).
+- Incident closure:
+  - Added recovery note to issue `#25` and closed it after capacity restoration.
+- Evidence policy remains unchanged:
+  - release-grade evidence = scheduled + privileged paths only; fallback artifacts remain excluded from release claims.

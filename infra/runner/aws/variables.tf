@@ -57,6 +57,18 @@ variable "append_kernel_version_label" {
   default     = true
 }
 
+variable "disable_api_stop" {
+  description = "When true, enable EC2 API stop protection on runner instances"
+  type        = bool
+  default     = true
+}
+
+variable "disable_api_termination" {
+  description = "When true, enable EC2 API termination protection on runner instances"
+  type        = bool
+  default     = true
+}
+
 variable "runner_profiles" {
   description = "Optional per-profile runner configuration map. If empty, one default runner is created from top-level variables."
   type = map(object({
