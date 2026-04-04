@@ -187,3 +187,58 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
   - Added recovery note to issue `#25` and closed it after capacity restoration.
 - Evidence policy remains unchanged:
   - release-grade evidence = scheduled + privileged paths only; fallback artifacts remain excluded from release claims.
+
+## Dual-Kernel Truth Fix (2026-04-04)
+- Objective:
+  - Enforce real dual-kernel runner profiles (5.15 + 6.8), not label-only profile claims.
+- Work AWS account scope:
+  - Account: `736242394405`.
+  - Region: `us-east-1`.
+- Terraform profile AMI pinning applied in `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/infra/runner/aws/terraform.tfvars`:
+  - `kernel_5_15.ami_id = ami-0fb0b230890ccd1e6`.
+  - `kernel_6_8.ami_id = ami-00de3875b03809ec5`.
+- Targeted reprovision:
+  - Recreated only `aws_instance.runner["kernel_5_15"]` via Terraform replace.
+  - New instance IDs after apply:
+    - `kernel_5_15`: `i-0cc0e4bbf310221bb` (AMI `ami-0fb0b230890ccd1e6`)
+    - `kernel_6_8`: `i-0b1e838d5daccef95` (AMI `ami-00de3875b03809ec5`)
+- EC2 protection re-validated on both instances:
+  - `disableApiStop=true`
+  - `disableApiTermination=true`
+- Kernel truth (SSM `uname -r`) evidence:
+  - `i-0cc0e4bbf310221bb` -> `5.15.0-1084-aws`
+  - `i-0b1e838d5daccef95` -> `6.8.0-1050-aws`
+- Runner inventory cleanup:
+  - Removed stale offline runner `id=224`.
+  - Online runners after fix:
+    - `id=225` labels: `self-hosted,linux,ebpf,kernel-5-15`
+    - `id=219` labels: `self-hosted,linux,ebpf,kernel-6-8`
+- Profile discovery check:
+  - `total_online_ebpf_runners=2`
+  - `kernel-5-15.available=true`
+  - `kernel-6-8.available=true`
+
+### Manual Privileged Smoke Sweep (Diagnostic, Non-GO)
+- `runner-health`: `23973775501` success.
+- `runner-canary`: `23973776501` success.
+- `nightly-ebpf-integration`: `23973777508` success:
+  - `privileged-kind-integration=success`
+  - `synthetic-fallback-integration=skipped`
+- `weekly-benchmark`: `23973778499` success:
+  - `full-benchmark-matrix=success`
+  - `synthetic-fallback-matrix=skipped`
+- `kernel-compatibility-matrix`: `23973779559` success:
+  - `compat-kernel-5-15=success`
+  - `compat-kernel-6-8=success`
+  - `compat-kernel-5-15-unavailable=skipped`
+  - `compat-kernel-6-8-unavailable=skipped`
+- `e2e-evidence-report`: `23973780574` success:
+  - `evidence-e2e=success`
+  - `evidence-runner-required=skipped`
+
+### Scheduled Evidence Policy (Unchanged)
+- Release-grade evidence = scheduled + privileged paths only.
+- Manual workflow_dispatch runs above are diagnostic validation only and are not counted toward release-grade GO criteria.
+- Next scheduled evidence window to record after this fix:
+  - Nightly: 2026-04-05
+  - Weekly set (`e2e-evidence-report`, `kernel-compatibility-matrix`, `weekly-benchmark`): 2026-04-06
