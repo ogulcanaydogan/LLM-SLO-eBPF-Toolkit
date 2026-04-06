@@ -242,3 +242,30 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 - Next scheduled evidence window to record after this fix:
   - Nightly: 2026-04-05
   - Weekly set (`e2e-evidence-report`, `kernel-compatibility-matrix`, `weekly-benchmark`): 2026-04-06
+
+## Scheduled Evidence Window Closure (2026-04-06)
+- Scope:
+  - This block records scheduled-only, privileged-path evidence after the dual-kernel truth fix.
+  - All referenced runs are on SHA `c99452c5baebbc94a67b8b7628711e68f0c2420b`.
+- Scheduled run set (2026-04-05 / 2026-04-06):
+  - `nightly-ebpf-integration`: `24018666508` (success)
+    - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24018666508
+    - Jobs: `privileged-kind-integration=success`, `synthetic-fallback-integration=skipped`.
+  - `weekly-benchmark`: `24021854240` (success)
+    - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24021854240
+    - Jobs: `full-benchmark-matrix=success`, `synthetic-fallback-matrix=skipped`.
+  - `kernel-compatibility-matrix`: `24020715292` (success)
+    - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24020715292
+    - Jobs: `compat-kernel-5-15=success`, `compat-kernel-6-8=success`, unavailable stubs skipped.
+  - `e2e-evidence-report`: `24020160673` (success)
+    - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24020160673
+    - Jobs: `evidence-e2e=success`, `evidence-runner-required=skipped`.
+  - `runner-health`: `24024182353` (success)
+    - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24024182353
+  - `runner-canary`: `24025263432` (success)
+    - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24025263432
+
+### Final Operational Checkpoint
+- 2026-04-06 scheduled window complete.
+- Dual-kernel truth (`5.15.x` + `6.8.x`) now aligns with runner profile labels and scheduled privileged CI evidence.
+- release-grade evidence = scheduled + privileged paths only; fallback artifacts remain non-release-grade.
