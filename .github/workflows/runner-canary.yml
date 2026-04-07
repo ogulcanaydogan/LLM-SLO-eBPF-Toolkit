@@ -13,7 +13,7 @@ jobs:
   runner-canary:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Discover runner profiles
         env:
           RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
@@ -50,7 +50,7 @@ jobs:
             echo "::error::runner-canary: kernel-6-8 profile unavailable."
             exit 1
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: runner-canary-${{ github.run_number }}
           path: artifacts/runner-canary/runner-discovery.json
