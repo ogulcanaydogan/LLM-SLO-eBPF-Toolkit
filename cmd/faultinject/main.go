@@ -55,7 +55,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "create output file failed: %v\n", err)
 		os.Exit(1)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	encoder := json.NewEncoder(file)
 	for _, sample := range samples {

@@ -258,7 +258,7 @@ func writeConfusionCSV(
 	if err != nil {
 		return fmt.Errorf("create confusion matrix file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	matrix := attribution.BuildConfusionMatrix(samples, predictions)
 	keys := make([]attribution.MatrixKey, 0, len(matrix))

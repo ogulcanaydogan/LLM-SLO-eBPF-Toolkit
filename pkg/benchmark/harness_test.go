@@ -1,8 +1,8 @@
 package benchmark
 
 import (
-	"encoding/json"
 	"encoding/csv"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -165,7 +165,7 @@ func readCSVRows(t *testing.T, path string) []string {
 	if err != nil {
 		t.Fatalf("open csv: %v", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()

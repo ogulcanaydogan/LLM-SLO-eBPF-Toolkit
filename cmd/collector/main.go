@@ -124,7 +124,7 @@ func loadInputSamples(path string) ([]collector.RawSample, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 	return readSamples(file)
 }
 
