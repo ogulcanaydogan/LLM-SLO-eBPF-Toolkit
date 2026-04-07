@@ -767,7 +767,7 @@ func loadCorpus(path string) ([]corpusDoc, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var docs []corpusDoc
 	if err := json.NewDecoder(f).Decode(&docs); err != nil {

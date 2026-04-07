@@ -213,7 +213,12 @@ func writeAttributionsJSONL(path string, predictions []schema.IncidentAttributio
 	}()
 
 	buffered := bufio.NewWriter(writer)
-	defer buffered.Flush()
+	defer func() {
+		flushErr := buffered.Flush()
+		if err == nil && flushErr != nil {
+			err = flushErr
+		}
+	}()
 
 	encoder := json.NewEncoder(buffered)
 	for _, prediction := range predictions {

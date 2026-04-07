@@ -89,7 +89,7 @@ func (q *HTTPQuerier) Query(ctx context.Context, query string) (float64, error) 
 	if err != nil {
 		return 0, fmt.Errorf("prometheus query: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

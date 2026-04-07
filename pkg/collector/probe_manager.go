@@ -176,7 +176,9 @@ func (pm *ProbeManager) closeProbe(signal string, spec *ProbeSpec) {
 		}
 	}
 	if spec.RingBuf != nil {
-		spec.RingBuf.Close()
+		if err := spec.RingBuf.Close(); err != nil {
+			log.Printf("probe %s: ringbuf close error: %v", signal, err)
+		}
 	}
 	if spec.Collection != nil {
 		spec.Collection.Close()
