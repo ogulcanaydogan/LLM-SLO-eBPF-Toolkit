@@ -181,7 +181,7 @@ func (b llamaCPPBackend) Generate(ctx context.Context, prompt string, maxTokens 
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("llama.cpp request failed with status %d", resp.StatusCode)
 	}

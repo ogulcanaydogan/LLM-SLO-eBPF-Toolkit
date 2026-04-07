@@ -14,7 +14,7 @@ func LoadSamplesFromJSONL(path string) ([]FaultSample, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open samples file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	samples := make([]FaultSample, 0)
 	scanner := bufio.NewScanner(file)

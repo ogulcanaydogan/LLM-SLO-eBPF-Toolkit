@@ -134,7 +134,7 @@ func readTotalTicks() (uint64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("open /proc/stat: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	scanner := bufio.NewScanner(file)
 	if !scanner.Scan() {
