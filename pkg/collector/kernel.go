@@ -33,7 +33,7 @@ func ProbeSmokeCheck() error {
 	if err != nil {
 		return fmt.Errorf("create smoke map: %w", err)
 	}
-	defer probeMap.Close()
+	defer func() { _ = probeMap.Close() }()
 
 	return nil
 }

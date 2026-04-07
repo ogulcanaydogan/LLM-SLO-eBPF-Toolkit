@@ -102,10 +102,9 @@ func writePredictionsCSV(path string, predictions []correlation.Prediction) erro
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	writer := csv.NewWriter(file)
-	defer writer.Flush()
 	if err := writer.Write([]string{
 		"case_id",
 		"signal",
@@ -131,6 +130,10 @@ func writePredictionsCSV(path string, predictions []correlation.Prediction) erro
 		}); err != nil {
 			return err
 		}
+	}
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return err
 	}
 	return nil
 }

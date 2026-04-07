@@ -269,3 +269,14 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 - 2026-04-06 scheduled window complete.
 - Dual-kernel truth (`5.15.x` + `6.8.x`) now aligns with runner profile labels and scheduled privileged CI evidence.
 - release-grade evidence = scheduled + privileged paths only; fallback artifacts remain non-release-grade.
+
+
+## Node24 Workflow Runtime Maintenance (2026-04-07)
+- Scope:
+  - GitHub Actions maintenance only; no product API/schema changes.
+  - Migrated workflow action versions to Node24-compatible releases in CI/release/nightly/weekly and related operational workflows.
+- Tracking:
+  - Implementation PR: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/pull/27
+  - Related issue: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/issues/26
+- Policy:
+  - release-grade evidence policy is unchanged: scheduled + privileged paths only.

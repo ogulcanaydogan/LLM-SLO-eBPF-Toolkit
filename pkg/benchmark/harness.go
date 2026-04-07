@@ -300,7 +300,7 @@ func writeIncidentPredictions(
 	if err != nil {
 		return fmt.Errorf("create predictions csv: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
@@ -356,7 +356,7 @@ func writeConfusionMatrix(path string, matrix map[attribution.MatrixKey]int) err
 	if err != nil {
 		return fmt.Errorf("create confusion matrix: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
@@ -389,7 +389,7 @@ func writeCollectorOverhead(path string, rows []collectorOverheadRow) error {
 	if err != nil {
 		return fmt.Errorf("create collector overhead csv: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()

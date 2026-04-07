@@ -68,7 +68,7 @@ func (e *SLOEventExporter) ExportBatch(events []schema.SLOEvent) error {
 	if err != nil {
 		return fmt.Errorf("send otlp payload: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return fmt.Errorf("otlp endpoint returned status %d", resp.StatusCode)

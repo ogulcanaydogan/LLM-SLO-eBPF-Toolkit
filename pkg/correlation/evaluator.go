@@ -62,7 +62,7 @@ func LoadLabeledPairsFromJSONL(path string) ([]LabeledPair, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open labeled pairs file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	out := make([]LabeledPair, 0)
 	scanner := bufio.NewScanner(file)

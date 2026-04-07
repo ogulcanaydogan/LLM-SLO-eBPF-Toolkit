@@ -626,7 +626,7 @@ func loadCollectorCPUSamples(path string) ([]collectorCPUSample, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open overhead file %s: %w", path, err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
@@ -686,7 +686,7 @@ func loadRawSamples(path string) ([]collector.RawSample, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open raw samples %s: %w", path, err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	scanner := bufio.NewScanner(file)
 	samples := make([]collector.RawSample, 0)

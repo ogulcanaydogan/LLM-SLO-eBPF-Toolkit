@@ -113,7 +113,7 @@ func (e *Exporter) doPost(payload []byte, contentType string) error {
 	if err != nil {
 		return fmt.Errorf("http post: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
 		return fmt.Errorf("drain response body: %w", err)
 	}

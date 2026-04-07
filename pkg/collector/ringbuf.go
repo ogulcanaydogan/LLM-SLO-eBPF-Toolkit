@@ -40,15 +40,15 @@ const (
 
 // bpfEvent matches the packed struct llm_slo_event from llm_slo_event.h.
 type bpfEvent struct {
-	PID          uint32
-	TID          uint32
-	TimestampNS  uint64
-	SignalType   uint32
-	ValueNS      uint64
-	ConnSrcPort  uint16
-	ConnDstPort  uint16
-	ConnDstIP    uint32
-	ErrnoVal     int32
+	PID         uint32
+	TID         uint32
+	TimestampNS uint64
+	SignalType  uint32
+	ValueNS     uint64
+	ConnSrcPort uint16
+	ConnDstPort uint16
+	ConnDstIP   uint32
+	ErrnoVal    int32
 }
 
 // RingBufConsumer reads llm_slo_event entries from eBPF ring buffers
@@ -105,7 +105,9 @@ func (c *RingBufConsumer) Start(ctx context.Context) {
 
 	<-ctx.Done()
 	for _, r := range readers {
-		r.Close()
+		if err := r.Close(); err != nil {
+			log.Printf("ringbuf close error: %v", err)
+		}
 	}
 	wg.Wait()
 	close(c.events)
