@@ -280,3 +280,45 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
   - Related issue: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/issues/26
 - Policy:
   - release-grade evidence policy is unchanged: scheduled + privileged paths only.
+
+## Stability Week Kickoff (2026-04-08 to 2026-04-13)
+- Scope:
+  - Stability-only operational window on `main` SHA `8f48aef88f7670ec01a3667221723a5c283dca2f`.
+  - No feature scope added; release-grade evidence remains scheduled + privileged only.
+- Main freeze discipline:
+  - Non-critical merges are frozen through the 2026-04-13 scheduled weekly window.
+  - If a forced merge occurs, baseline reset must be recorded with new SHA.
+
+### Scheduled Snapshot (as of 2026-04-08)
+- `runner-health` scheduled cadence on SHA `8f48aef`:
+  - 10 successful runs on 2026-04-08 so far.
+  - Latest: `24126849459` (success)
+    - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24126849459
+- `runner-canary` scheduled cadence on SHA `8f48aef`:
+  - 8 successful runs on 2026-04-08 so far.
+  - Latest: `24126086956` (success)
+    - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24126086956
+- `nightly-ebpf-integration` scheduled on SHA `8f48aef`:
+  - Run `24117524206` (success)
+    - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24117524206
+    - Jobs: `privileged-kind-integration=success`, `synthetic-fallback-integration=skipped`.
+
+### Latest Scheduled Weekly Set (pre-window baseline)
+- `weekly-benchmark`: `24021854240` (success, SHA `c99452c`)
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24021854240
+  - Jobs: `full-benchmark-matrix=success`, `synthetic-fallback-matrix=skipped`.
+- `kernel-compatibility-matrix`: `24020715292` (success, SHA `c99452c`)
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24020715292
+  - Jobs: `compat-kernel-5-15=success`, `compat-kernel-6-8=success`, unavailable stubs skipped.
+- `e2e-evidence-report`: `24020160673` (success, SHA `c99452c`)
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24020160673
+  - Jobs: `evidence-e2e=success`, `evidence-runner-required=skipped`.
+
+### Maintenance Backlog
+- Created non-blocker maintenance issue for post-Node24 runtime warning hygiene:
+  - Issue `#28`: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/issues/28
+- This issue does not change release-grade criteria and is tracked as operational sustainability work.
+
+### Policy (Unchanged)
+- release-grade evidence = scheduled + privileged only.
+- workflow_dispatch runs are diagnostic and excluded from release-grade claims.
