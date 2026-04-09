@@ -234,3 +234,10 @@ bench-multi:
 
 cdgate-smoke:
 	go test ./pkg/cdgate/... -v -count=1
+
+.PHONY: stability-week-check
+stability-week-check:
+	./scripts/ci/stability_week_check.sh \
+		--sha-lock "$${SHA_LOCK:-9ec8c88}" \
+		--window-date "$${WINDOW_DATE:-2026-04-13}" \
+		$${STRICT:+--strict}

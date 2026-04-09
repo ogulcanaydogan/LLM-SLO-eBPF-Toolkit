@@ -322,3 +322,35 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 ### Policy (Unchanged)
 - release-grade evidence = scheduled + privileged only.
 - workflow_dispatch runs are diagnostic and excluded from release-grade claims.
+
+## Stability Week Baseline Lock (2026-04-09)
+- Baseline lock updated to `main` SHA `9ec8c88f85388a352b2a056255c41230f7cb40f2` (`9ec8c88` short).
+- Baseline reset reason: docs-only operational tracking update after kickoff snapshot.
+- Freeze policy for this window remains active:
+  - no non-critical merges until 2026-04-13 scheduled weekly closure;
+  - if a forced merge occurs, a same-day baseline reset entry is required.
+
+### Scheduled Snapshot (as of 2026-04-09, event=`schedule` only)
+- `runner-health`: `24201639046` success on `9ec8c88`
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24201639046
+- `runner-canary`: `24201941839` success on `9ec8c88`
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24201941839
+- `nightly-ebpf-integration`: `24172118835` success on `9ec8c88`
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24172118835
+  - Jobs: `privileged-kind-integration=success`, `synthetic-fallback-integration=skipped`.
+
+### Weekly Closure Status (for 2026-04-13 window)
+- Status: pending until 2026-04-13 scheduled window completes.
+- Latest pre-window scheduled references:
+  - `e2e-evidence-report`: `24020160673` success (2026-04-06)
+  - `kernel-compatibility-matrix`: `24020715292` success (2026-04-06)
+  - `weekly-benchmark`: `24021854240` success (2026-04-06)
+- Monitoring artifact generator:
+  - Script: `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/scripts/ci/stability_week_check.sh`
+  - Latest outputs:
+    - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/artifacts/stability-week/status.json`
+    - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/artifacts/stability-week/status.md`
+
+### Policy Reminder
+- release-grade evidence = scheduled + privileged only.
+- Fallback job success is not accepted as release-grade evidence; expected pattern is fallback `skipped`.
