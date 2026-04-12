@@ -354,3 +354,27 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 ### Policy Reminder
 - release-grade evidence = scheduled + privileged only.
 - Fallback job success is not accepted as release-grade evidence; expected pattern is fallback `skipped`.
+
+## Stability Week Baseline Reset (2026-04-12)
+- Baseline lock updated from `9ec8c88` to `fea11e5` due required monitoring automation merge.
+- Current lock for remaining Stability Week window: `fea11e5`.
+- Freeze policy remains unchanged through 2026-04-13 weekly scheduled closure.
+
+### Scheduled Snapshot (as of 2026-04-12, event=`schedule` only)
+- `runner-health`: `24313788027` success on `fea11e5`
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24313788027
+- `runner-canary`: `24313331553` success on `fea11e5`
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24313331553
+- `nightly-ebpf-integration`: `24298650423` success on `fea11e5`
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24298650423
+  - Jobs: `privileged-kind-integration=success`, `synthetic-fallback-integration=skipped`.
+
+### Weekly Closure Readiness (for 2026-04-13)
+- `stability_week_check` status: `pending` (expected until weekly window is reached).
+- Latest artifact snapshot:
+  - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/artifacts/stability-week/status.json`
+  - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/artifacts/stability-week/status.md`
+
+### Policy Reminder
+- release-grade evidence = scheduled + privileged only.
+- workflow_dispatch runs remain diagnostic and excluded from release-grade closure.
