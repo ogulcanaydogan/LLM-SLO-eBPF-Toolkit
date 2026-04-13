@@ -378,3 +378,36 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 ### Policy Reminder
 - release-grade evidence = scheduled + privileged only.
 - workflow_dispatch runs remain diagnostic and excluded from release-grade closure.
+
+## Scheduled Window Closure (2026-04-13)
+- Closure baseline SHA: `ac44ea86af0af513568f4f07cbd6f4f8a4b975f7` (`ac44ea8` short).
+- Final scheduled-only validation was executed via:
+  - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/scripts/ci/stability_week_check.sh --sha-lock ac44ea8 --window-date 2026-04-13 --strict`
+- Final artifact snapshot:
+  - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/artifacts/stability-week/status.json`
+  - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/artifacts/stability-week/status.md`
+
+### Scheduled Run Evidence (event=`schedule`)
+- `runner-health`: `24329739781` success
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24329739781
+- `runner-canary`: `24326855516` success
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24326855516
+- `nightly-ebpf-integration`: `24325767266` success
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24325767266
+  - Jobs: `privileged-kind-integration=success`, `synthetic-fallback-integration=skipped`.
+- `e2e-evidence-report`: `24327587921` success
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24327587921
+  - Jobs: `evidence-e2e=success`, `evidence-runner-required=skipped`.
+- `kernel-compatibility-matrix`: `24328244741` success
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24328244741
+  - Jobs: `compat-kernel-5-15=success`, `compat-kernel-6-8=success`, unavailable stubs skipped.
+- `weekly-benchmark`: `24329653473` success
+  - URL: https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/runs/24329653473
+  - Jobs: `full-benchmark-matrix=success`, `synthetic-fallback-matrix=skipped`.
+
+### Final Policy and Outcome
+- release-grade evidence = scheduled + privileged only.
+- Fallback path remained non-release-grade and stayed `skipped` across closure runs.
+- Stability Week complete.
+- Issue `#28` remains open as post-GA sustainability tracking (non-blocker):
+  - https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/issues/28
