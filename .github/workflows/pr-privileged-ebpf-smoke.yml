@@ -59,8 +59,8 @@ jobs:
           make schema-validate
       - name: Build local demo images for kind
         run: |
-          docker build -t llm-slo-agent:ci -f cmd/agent/Dockerfile .
-          docker build -t llm-slo-rag-service:ci -f demo/rag-service/Dockerfile .
+          DOCKER_BUILDKIT=1 docker build -t llm-slo-agent:ci -f cmd/agent/Dockerfile .
+          DOCKER_BUILDKIT=1 docker build -t llm-slo-rag-service:ci -f demo/rag-service/Dockerfile .
       - name: kind smoke and deploy baseline
         run: |
           make kind-up

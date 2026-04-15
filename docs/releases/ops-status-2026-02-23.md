@@ -411,3 +411,38 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 - Stability Week complete.
 - Issue `#28` remains open as post-GA sustainability tracking (non-blocker):
   - https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/issues/28
+
+## Actions Runtime Warning Hygiene Snapshot (2026-04-15)
+- Scope:
+  - Post-GA non-blocker maintenance item `#28` (runtime warning hygiene).
+  - Product API/schema behavior unchanged.
+
+### Warning Inventory (latest sampled runs)
+- `ci` run `24329869035` (2026-04-13):
+  - Observed: Node `DEP0040` `punycode` deprecation warnings in runner logs.
+  - Classification: low-risk upstream runtime noise (no job failure).
+- `nightly-ebpf-integration` run `24380955506` (2026-04-14):
+  - Observed: `DEPRECATED: The legacy builder is deprecated` during `docker build` steps.
+  - Classification: actionable workflow-level warning.
+- `weekly-benchmark` run `24329653473` (2026-04-13):
+  - Observed: same legacy Docker builder deprecation warning.
+  - Classification: actionable workflow-level warning.
+- `release` historical run `23745046189` (2026-03-30):
+  - Observed: Node20 deprecation warning for pre-migration action versions.
+  - Classification: historical only; current workflow definitions are Node24-targeted.
+
+### Remediation Applied (2026-04-15)
+- Enabled BuildKit for local CI image builds by changing `docker build` invocations to `DOCKER_BUILDKIT=1 docker build` in:
+  - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/.github/workflows/nightly-ebpf-integration.yml`
+  - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/.github/workflows/weekly-benchmark.yml`
+  - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/.github/workflows/e2e-evidence-report.yml`
+  - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/.github/workflows/pr-privileged-ebpf-smoke.yml`
+
+### Follow-up
+- Verify warning reduction on next scheduled windows:
+  - nightly: 2026-04-16
+  - weekly benchmark set: 2026-04-20
+- Keep issue `#28` open as non-blocker sustainability tracking until two scheduled windows are clean.
+
+### Policy
+- release-grade evidence = scheduled + privileged only (unchanged).

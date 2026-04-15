@@ -37,8 +37,8 @@ jobs:
           go-version: "1.23"
       - name: Build local demo images for kind
         run: |
-          docker build -t llm-slo-agent:ci -f cmd/agent/Dockerfile .
-          docker build -t llm-slo-rag-service:ci -f demo/rag-service/Dockerfile .
+          DOCKER_BUILDKIT=1 docker build -t llm-slo-agent:ci -f cmd/agent/Dockerfile .
+          DOCKER_BUILDKIT=1 docker build -t llm-slo-rag-service:ci -f demo/rag-service/Dockerfile .
       - name: Deploy kind baseline stack
         run: |
           make kind-up

@@ -47,7 +47,7 @@ jobs:
           make correlation-gate
           make schema-validate
       - name: Build local agent image for kind
-        run: docker build -t llm-slo-agent:ci -f cmd/agent/Dockerfile .
+        run: DOCKER_BUILDKIT=1 docker build -t llm-slo-agent:ci -f cmd/agent/Dockerfile .
 
       - name: Deploy kind cluster and observability stack
         run: |
