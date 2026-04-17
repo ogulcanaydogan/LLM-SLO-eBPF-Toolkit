@@ -446,3 +446,30 @@ Timestamp (UTC): 2026-02-23T21:00:00Z
 
 ### Policy
 - release-grade evidence = scheduled + privileged only (unchanged).
+
+## BuildKit Regression and Remediation Checkpoint (2026-04-17)
+- Context:
+  - After BuildKit enablement commit `3fff326`, scheduled nightly runs failed on:
+    - `24492136404` (2026-04-16, schedule)
+    - `24547700179` (2026-04-17, schedule)
+  - Failing job: `privileged-kind-integration`.
+- Root cause:
+  - Self-hosted runner image did not have a working `buildx` component.
+  - Error signature: `BuildKit is enabled but the buildx component is missing or broken.`
+- Remediation:
+  - Commit `4fc1e64` added `docker/setup-buildx-action@v4` to self-hosted workflows using BuildKit:
+    - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/.github/workflows/nightly-ebpf-integration.yml`
+    - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/.github/workflows/weekly-benchmark.yml`
+    - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/.github/workflows/e2e-evidence-report.yml`
+    - `/Users/ogulcanaydogan/Desktop/Projects/AI-Portfolio/first_badge/LLM-SLO-eBPF-Toolkit/.github/workflows/pr-privileged-ebpf-smoke.yml`
+- Validation (manual, non-release-grade):
+  - `nightly-ebpf-integration` workflow_dispatch run `24563500276` on SHA `4fc1e64` = success.
+  - Pattern check: `runner-preflight=success`, `privileged-kind-integration=success`, `synthetic-fallback-integration=skipped`.
+  - Log check on this run:
+    - No `DEPRECATED: The legacy builder` warning.
+    - No `BuildKit is enabled but the buildx component is missing or broken` error.
+- Next scheduled verification:
+  - nightly scheduled window: 2026-04-18
+  - weekly scheduled set: 2026-04-20
+- Policy remains unchanged:
+  - release-grade evidence = scheduled + privileged only.
