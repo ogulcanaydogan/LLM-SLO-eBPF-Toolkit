@@ -18,7 +18,7 @@ jobs:
       reason: ${{ steps.detect.outputs.reason }}
       trusted_pr: ${{ steps.trust.outputs.trusted_pr }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
       - id: trust
         shell: bash
         run: |
@@ -47,7 +47,7 @@ jobs:
     runs-on: [self-hosted, linux, ebpf]
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-go@v6
         with:
           go-version: "1.23"
@@ -99,7 +99,7 @@ jobs:
           fi
       - name: Upload privileged smoke artifacts
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: pr-privileged-smoke-artifacts
           path: |
