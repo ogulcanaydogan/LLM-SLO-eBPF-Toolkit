@@ -33,7 +33,7 @@ jobs:
   evaluate-go:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
 
       - name: Evaluate v1.0 GO criteria
         env:
@@ -61,7 +61,7 @@ jobs:
 
       - name: Upload GO evaluator artifacts
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: v1-go-evaluator-${{ github.run_number }}
           path: artifacts/release-go/

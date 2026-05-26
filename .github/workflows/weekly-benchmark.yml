@@ -19,7 +19,7 @@ jobs:
       has_ebpf_runner: ${{ steps.detect.outputs.has_ebpf_runner }}
       runner_count: ${{ steps.detect.outputs.runner_count }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
       - id: detect
         env:
           RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
@@ -33,7 +33,7 @@ jobs:
     runs-on: [self-hosted, linux, ebpf]
     timeout-minutes: 240
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v6
@@ -178,7 +178,7 @@ jobs:
         run: make m5-gate
 
       - name: Upload weekly artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: weekly-benchmark-${{ github.run_number }}
           path: artifacts/weekly-benchmark/
@@ -195,7 +195,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v6
@@ -322,7 +322,7 @@ jobs:
         run: make m5-gate
 
       - name: Upload weekly artifacts (fallback)
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: weekly-benchmark-fallback-${{ github.run_number }}
           path: artifacts/weekly-benchmark/

@@ -17,7 +17,7 @@ jobs:
       count_6_8: ${{ steps.detect.outputs.count_6_8 }}
       reason: ${{ steps.detect.outputs.reason }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
       - id: detect
         env:
           RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
@@ -36,7 +36,7 @@ jobs:
           echo "count_5_15=${count_5_15}" >> "$GITHUB_OUTPUT"
           echo "count_6_8=${count_6_8}" >> "$GITHUB_OUTPUT"
           echo "reason=${reason}" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7.0.1
         with:
           name: kernel-compat-runner-discovery
           path: artifacts/compatibility/runner-discovery.json
@@ -46,7 +46,7 @@ jobs:
     if: needs.runner-discovery.outputs.count_5_15 != '0'
     runs-on: [self-hosted, linux, ebpf, kernel-5-15]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-go@v6
         with:
           go-version: "1.23"
@@ -56,7 +56,7 @@ jobs:
         run: |
           mkdir -p artifacts/compatibility
           ./scripts/ci/kernel_compat_probe.sh --profile kernel-5-15 --out artifacts/compatibility/kernel-5-15.json
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7.0.1
         with:
           name: kernel-compat-kernel-5-15
           path: artifacts/compatibility/kernel-5-15.json
@@ -77,7 +77,7 @@ jobs:
             "timestamp_utc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           }
           EOF
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7.0.1
         with:
           name: kernel-compat-kernel-5-15
           path: artifacts/compatibility/kernel-5-15.json
@@ -87,7 +87,7 @@ jobs:
     if: needs.runner-discovery.outputs.count_6_8 != '0'
     runs-on: [self-hosted, linux, ebpf, kernel-6-8]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
       - uses: actions/setup-go@v6
         with:
           go-version: "1.23"
@@ -97,7 +97,7 @@ jobs:
         run: |
           mkdir -p artifacts/compatibility
           ./scripts/ci/kernel_compat_probe.sh --profile kernel-6-8 --out artifacts/compatibility/kernel-6-8.json
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7.0.1
         with:
           name: kernel-compat-kernel-6-8
           path: artifacts/compatibility/kernel-6-8.json
@@ -118,7 +118,7 @@ jobs:
             "timestamp_utc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           }
           EOF
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7.0.1
         with:
           name: kernel-compat-kernel-6-8
           path: artifacts/compatibility/kernel-6-8.json
@@ -132,7 +132,7 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
       - uses: actions/download-artifact@v8
         with:
           pattern: kernel-compat-*
@@ -141,7 +141,7 @@ jobs:
       - name: Render compatibility report
         run: |
           RUN_ID="${{ github.run_id }}" ./scripts/ci/render_compatibility_report.sh artifacts/compatibility docs/compatibility.md
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7.0.1
         with:
           name: kernel-compatibility-report
           path: |
