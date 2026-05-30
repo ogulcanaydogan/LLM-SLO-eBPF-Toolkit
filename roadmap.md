@@ -2,9 +2,9 @@
 
 ## v1.1.0 — Extended Kernel Probes (target: 2026-06-30)
 
-- Add GPU memory bandwidth probe via NVIDIA NVML integration alongside existing CPU/network probes
+- Add GPU memory bandwidth probe via NVIDIA NVML integration alongside existing CPU/network probes [scaffolded: `pkg/nvml/client.go` + `pkg/collector/gpu_bandwidth.go`; stubs return ErrNotAvailable on non-GPU hosts; real go-nvml wiring deferred]
 - CUDA kernel launch latency tracking for inference workloads on DGX Spark and A100 targets
-- New `fault-domain: gpu` classification in Bayesian attribution engine
+- New `fault-domain: gpu` classification in Bayesian attribution engine [GPUMetricSample.FaultDomain() = "gpu" wired]
 - `ebpf/probes/gpu_bandwidth.go` — new probe with CO-RE portability for kernel 5.15+
 
 ## v1.2.0 — Grafana Integration Pack (target: 2026-08-31)
