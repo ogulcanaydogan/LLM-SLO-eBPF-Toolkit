@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- All CI, release, nightly-integration, weekly-benchmark, kernel-compatibility, e2e-evidence, and pr-privileged-smoke workflows now pin `go-version: "1.25"` (was `"1.23"`); `go.mod` declares `go 1.25.0` and `GOTOOLCHAIN=local` was causing `pr-gates` to fail with "go.mod requires go >= 1.25.0" on every PR, including pending Dependabot rollups.
+
 ## v0.3.0 - 2026-02-20
 
 ### New eBPF Probes
