@@ -1,8 +1,7 @@
 name: nightly-ebpf-integration
 
 on:
-  schedule:
-    - cron: "30 3 * * *"
+  # Manual until a self-hosted eBPF runner is online (scheduled runs only false-alarmed).
   workflow_dispatch:
 
 env:

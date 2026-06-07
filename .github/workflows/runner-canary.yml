@@ -1,9 +1,8 @@
 name: runner-canary
 
 on:
+  # Manual until a self-hosted eBPF runner is online (scheduled runs only false-alarmed).
   workflow_dispatch:
-  schedule:
-    - cron: "10 * * * *"
 
 permissions:
   contents: read
