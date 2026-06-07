@@ -1,8 +1,8 @@
 name: runner-health
 
 on:
-  schedule:
-    - cron: "*/30 * * * *"
+  # No self-hosted eBPF runner is registered, so the scheduled gate only produced
+  # false-alarm failures. Run manually (or re-add the schedule) once a runner is online.
   workflow_dispatch:
 
 env:
