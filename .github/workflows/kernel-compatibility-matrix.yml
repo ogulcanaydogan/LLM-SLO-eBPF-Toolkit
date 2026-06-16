@@ -20,7 +20,7 @@ jobs:
       count_6_8: ${{ steps.detect.outputs.count_6_8 }}
       reason: ${{ steps.detect.outputs.reason }}
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - id: detect
         env:
           RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
@@ -49,7 +49,7 @@ jobs:
     if: needs.runner-discovery.outputs.count_5_15 != '0'
     runs-on: [self-hosted, linux, ebpf, kernel-5-15]
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - uses: actions/setup-go@v6
         with:
           go-version: "1.25"
@@ -90,7 +90,7 @@ jobs:
     if: needs.runner-discovery.outputs.count_6_8 != '0'
     runs-on: [self-hosted, linux, ebpf, kernel-6-8]
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - uses: actions/setup-go@v6
         with:
           go-version: "1.25"
@@ -135,7 +135,7 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - uses: actions/download-artifact@v8
         with:
           pattern: kernel-compat-*

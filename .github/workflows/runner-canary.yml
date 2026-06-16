@@ -15,7 +15,7 @@ jobs:
   runner-canary:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.3
       - name: Discover runner profiles
         env:
           RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
