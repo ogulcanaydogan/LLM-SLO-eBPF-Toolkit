@@ -19,7 +19,7 @@ jobs:
       has_ebpf_runner: ${{ steps.detect.outputs.has_ebpf_runner }}
       runner_count: ${{ steps.detect.outputs.runner_count }}
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
       - id: detect
         env:
           RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
@@ -33,7 +33,7 @@ jobs:
     runs-on: [self-hosted, linux, ebpf]
     timeout-minutes: 240
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v6
@@ -195,7 +195,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
         with:
           fetch-depth: 0
       - uses: actions/setup-go@v6
