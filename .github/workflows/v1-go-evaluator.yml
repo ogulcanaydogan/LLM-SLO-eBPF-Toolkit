@@ -33,7 +33,7 @@ jobs:
   evaluate-go:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
 
       - name: Evaluate v1.0 GO criteria
         env:
