@@ -4,6 +4,7 @@
 [![CI](https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/ogulcanaydogan/LLM-SLO-eBPF-Toolkit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ogulcanaydogan/llm-slo-ebpf-toolkit)](https://goreportcard.com/report/github.com/ogulcanaydogan/llm-slo-ebpf-toolkit)
+[![Go Reference](https://pkg.go.dev/badge/github.com/ogulcanaydogan/llm-slo-ebpf-toolkit.svg)](https://pkg.go.dev/github.com/ogulcanaydogan/llm-slo-ebpf-toolkit)
 
 **Kernel-grounded observability for LLM reliability engineering.**
 
@@ -352,6 +353,19 @@ Benchmark artifacts (confusion matrices, predictions, provenance) are published 
 - **Observability**: Grafana, Prometheus, Tempo, OpenTelemetry Collector
 - **Schemas**: JSON Schema for contract stability (v1 SLO events, v1 incident attributions, v1alpha1 probe events)
 - **CI/CD**: GitHub Actions with PR privileged smoke on self-hosted `linux+ebpf`, scheduled fallback routing, kernel compatibility matrix probes, and evidence-report automation
+
+## Install
+
+Install the `sloctl` CLI (prerequisite checks and the CI/CD SLO gate) with the
+Go toolchain (Go 1.23+):
+
+```bash
+go install github.com/ogulcanaydogan/llm-slo-ebpf-toolkit/cmd/sloctl@latest
+```
+
+This places `sloctl` in `$(go env GOPATH)/bin`. The eBPF **agent** itself runs
+in-cluster and requires a Linux kernel with a privileged DaemonSet; deploy it via
+the Helm chart or `deploy/k8s` manifests (see [Quick Start](#quick-start) below).
 
 ## Quick Start
 
