@@ -1,0 +1,43 @@
+# Example: gate a deployment on LLM SLO health using sloctl.
+#
+# Copy this file into YOUR service repository at
+# .github/workflows/slo-gate.yml and adjust the thresholds and the
+# Prometheus URL to match your environment. It is intentionally NOT placed
+# under .github/workflows/ in this toolkit repo, because it depends on a
+# reachable Prometheus that only exists in a real deployment.
+#
+# What it does: before promoting a release, it queries your Prometheus for the
+# LLM SLO signals (TTFT p95, error rate, error-budget burn rate) and fails the
+# job — blocking the deploy — when any threshold is breached.
+
+name: SLO Gate
+
+on:
+  workflow_dispatch: {}
+  # Typical real usage: run as a required check before a deploy job, e.g.
+  # deploy:
+  #   needs: [slo-gate]
+
+jobs:
+  slo-gate:
+    name: Check LLM SLOs before deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install sloctl
+        run: go install github.com/ogulcanaydogan/llm-slo-ebpf-toolkit/cmd/sloctl@latest
+
+      - name: Gate on SLO health
+        env:
+          # Prefer a repo/environment secret or variable over a hardcoded URL.
+          PROMETHEUS_URL: ${{ secrets.PROMETHEUS_URL || vars.PROMETHEUS_URL }}
+        run: |
+          sloctl cdgate check \
+            --prometheus-url "$PROMETHEUS_URL" \
+            --ttft-p95-ms 800 \
+            --error-rate 0.05 \
+            --burn-rate 2.0 \
+            --output json
+          # Exit 0 = SLOs healthy (deploy may proceed)
+          # Exit 1 = SLO breach (this job fails and blocks the deploy)
+          # Add --fail-open=false to FAIL when Prometheus is unreachable
+          # (default is fail-open: an unreachable Prometheus passes the gate).

@@ -454,6 +454,10 @@ go run ./cmd/sloctl cdgate check \
 # --fail-open (default: true) passes the gate if Prometheus is unreachable
 ```
 
+A ready-to-copy GitHub Actions workflow is provided at
+[`examples/cicd/slo-gate.yml`](examples/cicd/slo-gate.yml) — drop it into your
+service repo and set `PROMETHEUS_URL` to gate deploys on SLO health.
+
 ### Agent and Collector
 ```bash
 # Run agent with OTLP export
