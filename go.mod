@@ -3,7 +3,7 @@ module github.com/ogulcanaydogan/llm-slo-ebpf-toolkit
 go 1.25.0
 
 require (
-	github.com/cilium/ebpf v0.21.0
+	github.com/cilium/ebpf v0.22.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.opentelemetry.io/otel v1.44.0
