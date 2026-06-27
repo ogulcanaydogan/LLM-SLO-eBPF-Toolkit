@@ -426,6 +426,9 @@ helm install llm-slo-agent charts/llm-slo-agent \
   --set webhook.format=pagerduty
 ```
 
+See the [Helm values reference](charts/llm-slo-agent/VALUES.md) for every
+configurable chart value and common override examples.
+
 ### Webhook Integration
 ```bash
 # Enable webhook delivery in toolkit.yaml or via Helm values:
