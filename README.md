@@ -328,7 +328,11 @@ Workflow map:
 
 ## Key Results
 
-Results from the current benchmark suite using controlled fault injection on a 3-node kind cluster:
+Results from the benchmark suite on a 3-node kind cluster using scripted, seeded fault
+injection where the ground-truth fault labels are known by construction. The perfect
+attribution and zero error rates below reflect this controlled setup, not production
+traffic; they show the pipeline is correct on labeled scenarios, not that real-world
+attribution is error-free:
 
 | Metric | Value |
 |---|---|
@@ -544,23 +548,9 @@ docs/
 
 ## Differentiation
 
-This toolkit occupies a specific position in the observability landscape that no existing tool addresses:
-
-```mermaid
-quadrantChart
-    title Observability Tool Positioning
-    x-axis "Generic Telemetry" --> "LLM-Specific SLIs"
-    y-axis "App-Level Only" --> "Kernel-Grounded"
-
-    This Toolkit: [0.90, 0.92]
-    OTel eBPF: [0.20, 0.70]
-    Pixie: [0.15, 0.75]
-    Cilium/Hubble: [0.10, 0.80]
-    Coroot: [0.30, 0.60]
-    Parca: [0.10, 0.65]
-    Datadog USM: [0.25, 0.55]
-    Tetragon: [0.05, 0.85]
-```
+This toolkit combines two things most observability tools keep separate: LLM-specific
+service-level indicators and kernel-grounded signals. The capability comparison below
+shows where it differs from adjacent eBPF and observability tools.
 
 | Capability | This Toolkit | OTel eBPF | Pixie | Cilium/Hubble | Coroot |
 |---|---|---|---|---|---|
@@ -636,6 +626,9 @@ graph TD
 This methodology is designed to meet the evidentiary standards of peer-reviewed systems research, enabling independent verification of all attribution accuracy claims.
 
 ## Roadmap
+
+The current stable release is **v1.0.1**. The milestones below trace the build path
+through the v0.3 line; v1.0.0 and v1.0.1 followed as stability and hardening releases.
 
 ```mermaid
 gantt
