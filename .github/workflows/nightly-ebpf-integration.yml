@@ -18,7 +18,7 @@ jobs:
       has_ebpf_runner: ${{ steps.detect.outputs.has_ebpf_runner }}
       runner_count: ${{ steps.detect.outputs.runner_count }}
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - id: detect
         env:
           RUNNER_STATUS_TOKEN: ${{ secrets.RUNNER_STATUS_TOKEN }}
@@ -32,7 +32,7 @@ jobs:
     runs-on: [self-hosted, linux, ebpf]
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - uses: actions/setup-go@v7
         with:
           go-version: "1.25"
@@ -102,7 +102,7 @@ jobs:
           timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           EOF_MODE
       - name: Upload nightly artifacts
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: nightly-ebpf-artifacts
           path: |
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v7.0.0
+      - uses: actions/checkout@v7.0.1
       - uses: actions/setup-go@v7
         with:
           go-version: "1.25"
@@ -151,7 +151,7 @@ jobs:
           echo "::error::Fallback mode artifacts are marked release_grade=false and cannot be used for release claims."
           exit 1
       - name: Upload nightly artifacts
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: nightly-ebpf-artifacts
           path: |
